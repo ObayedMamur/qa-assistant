@@ -1,4 +1,4 @@
-=== QA Assistant - A Plugin for all the SQA Engineers to help them with testing in WordPress Environments ===
+=== QA Assistant - A Tool for all the SQA Engineers to help them with Software Quality Assurance ===
 Contributors: obayedmamur, nhrrob
 Tags: qa assistant, quality assurance, help, sqa helper tool
 Requires at least: 5.0

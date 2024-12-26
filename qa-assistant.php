@@ -1,12 +1,12 @@
 <?php
 /*
-Plugin Name: QA Assistant
+Plugin Name: QA Assistant - A Tool for all the SQA Engineers to help them with Software Quality Assurance
 Plugin URI: https://obayedmamur.com/qa-assistant
 Description: A plugin to assist with QA tasks.
 Version: 1.0.0
 Author: Obayed Mamur
 Author URI: https://obayedmamur.com
-License: GPL2
+License: GPLv3
 */
 
 // Prevent direct access to the file
@@ -36,6 +36,7 @@ add_action('init', 'qa_assistant_init');
 function get_git_branch($path) {
     $git_head_file = $path . '/.git/HEAD';
     if (file_exists($git_head_file)) {
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
         $contents = file_get_contents($git_head_file);
         if (strpos($contents, 'ref:') === 0) {
             return trim(str_replace('ref: refs/heads/', '', $contents));
@@ -60,7 +61,7 @@ function add_git_branch_to_admin_bar($wp_admin_bar) {
         $alias = isset($settings['alias']) ? $settings['alias'] : $plugin_dir;
         
         // Use custom color or generate a random one if not provided
-        $color = isset($settings['color']) ? $settings['color'] : '#' . dechex(rand(0x000000, 0xFFFFFF));
+        $color = isset($settings['color']) ? $settings['color'] : '#' . dechex(wp_rand(0x000000, 0xFFFFFF));
 
         // Add node to the admin bar
         $wp_admin_bar->add_node(array(
