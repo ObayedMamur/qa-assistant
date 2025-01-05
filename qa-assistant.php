@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: QA Assistant - A Tool for all the SQA Engineers to help them with Software Quality Assurance
+Plugin Name: QA Assistant
 Plugin URI: https://obayedmamur.com/qa-assistant
-Description: A plugin to assist with QA tasks.
+Description: A Tool for all the SQA Engineers to help them with Software Quality Assurance.
 Version: 1.0.0
 Author: Obayed Mamur
 Author URI: https://obayedmamur.com
