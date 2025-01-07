@@ -36,7 +36,12 @@ class Menu {
      * @return void
      */
     public function settings_page() {
-        _e('Settings Page Content', 'wp-plugin_template');
+        $settings = new Settings();
+
+        $available_plugins = $settings->get_available_plugins();
+		$selected_plugin_basename = filter_input( INPUT_GET, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+		require QA_ASSISTANT_PLUGIN_DIR_PATH . 'templates/settings-page.php';
     }
 
     /**

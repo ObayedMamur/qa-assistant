@@ -64,6 +64,7 @@ final class Qa_Assistant {
         define( 'QA_ASSISTANT_VERSION', self::version );
         define( 'QA_ASSISTANT_FILE', __FILE__ );
         define( 'QA_ASSISTANT_PATH', __DIR__ );
+        define( 'QA_ASSISTANT_PLUGIN_DIR_PATH', plugin_dir_path( QA_ASSISTANT_FILE ) );
         define( 'QA_ASSISTANT_URL', plugins_url( '', QA_ASSISTANT_FILE ) );
         define( 'QA_ASSISTANT_ASSETS', QA_ASSISTANT_URL . '/assets' );
     }
