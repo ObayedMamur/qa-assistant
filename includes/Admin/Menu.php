@@ -52,5 +52,7 @@ class Menu {
     public function enqueue_assets() {
         wp_enqueue_style( 'qa-assistant-admin-style' );
         wp_enqueue_script( 'qa-assistant-admin-script' );
+        wp_enqueue_style( 'qa-assistant-select2-style' );
+        wp_enqueue_script( 'qa-assistant-select2-script' );
     }
 }

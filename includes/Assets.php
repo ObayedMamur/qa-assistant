@@ -32,6 +32,11 @@ class Assets {
                 'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/admin.js' ),
                 'deps'    => [ 'jquery', 'wp-util' ]
             ],
+            'qa-assistant-select2-script' => [
+                'src'     => QA_ASSISTANT_ASSETS . '/js/select2.min.js',
+                'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/select2.min.js' ),
+                'deps'    => [ 'jquery' ]
+            ],
         ];
     }
 
@@ -49,6 +54,10 @@ class Assets {
             'qa-assistant-admin-style' => [
                 'src'     => QA_ASSISTANT_ASSETS . '/css/admin.css',
                 'version' => filemtime( QA_ASSISTANT_PATH . '/assets/css/admin.css' )
+            ],
+            'qa-assistant-select2-style' => [
+                'src'     => QA_ASSISTANT_ASSETS . '/css/select2.min.css',
+                'version' => filemtime( QA_ASSISTANT_PATH . '/assets/css/select2.min.css' )
             ],
         ];
     }

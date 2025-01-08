@@ -17,7 +17,7 @@
 					<?php esc_html_e( 'Select Your Plugins:', 'qa-assistant' ); ?>
 				</p>
 
-				<select multiple id="qa-assistant__plugins-dropdown" name="qa_assistant_plugins" aria-describedby="qa-assistant__description">
+				<select class="qa-assistant-select2" id="qa-assistant__plugins-dropdown" name="qa_assistant_plugins[]" aria-describedby="qa-assistant__description" multiple="multiple">
 					<?php if ( 1 !== count( $available_plugins ) ) { ?>
 						<option value=""><?php esc_html_e( 'Select Plugin', 'qa-assistant' ); ?></option>
 					<?php } ?>

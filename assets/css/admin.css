@@ -1,0 +1,9 @@
+* {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+p {
+    font-size: 16px;
+}
+input[type="submit"] {
+    padding: 8px 20px!important;
+}
