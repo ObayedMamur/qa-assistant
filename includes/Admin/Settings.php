@@ -23,4 +23,20 @@ class Settings {
 
         return $available_plugins;
     }
+
+    public function save_settings( $selected_plugins ) {
+        $settings = maybe_unserialize( get_option( 'qa_assistant_settings', array() ) );
+
+        if ( is_array( $selected_plugins ) && count( $selected_plugins ) ) {
+            $selected_plugins = array_map( 'sanitize_text_field', $selected_plugins ); // already did this in the settings_page method
+        } else {
+            $selected_plugins = array();
+        }
+
+        $settings['selected_plugins'] = $selected_plugins;
+
+        update_option( 'qa_assistant_settings', maybe_serialize( $settings ) );
+        // Reload the page after saving
+        wp_safe_redirect( $_SERVER['REQUEST_URI'] );
+    }
 }

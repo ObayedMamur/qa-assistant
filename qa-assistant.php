@@ -116,13 +116,26 @@ final class Qa_Assistant {
 
     public function add_git_branch_to_admin_bar($wp_admin_bar) {
         // List of plugin directories with their aliases and custom colors
-        $plugin_dirs = array(
-            'essential-addons-for-elementor-lite' => array('alias' => 'EA-Lite', 'color' => '#33ff57'),
-            'essential-addons-elementor' => array('alias' => 'EA-Pro', 'color' => '#33ff57'),
-            // Add more plugins here with custom aliases and colors
-        );
+        $qa_assistant_settings = get_option( 'qa_assistant_settings' );
+
+        $qa_assistant_settings = maybe_unserialize($qa_assistant_settings);
+
+        if ( ! is_array( $qa_assistant_settings ) ) {
+            return;
+        }
+        
+        $plugin_dirs = $qa_assistant_settings['selected_plugins'];
+        // index same as value 
+        $plugin_dirs = array_combine($plugin_dirs, $plugin_dirs);
+        
+        // $plugin_dirs = array(
+        //     'essential-addons-for-elementor-lite' => array('alias' => 'EA-Lite', 'color' => '#33ff57'),
+        //     'essential-addons-elementor' => array('alias' => 'EA-Pro', 'color' => '#33ff57'),
+        //     // Add more plugins here with custom aliases and colors
+        // );
 
         foreach ($plugin_dirs as $plugin_dir => $settings) {
+
             $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
             $branch = $this->get_git_branch($path);
             
@@ -130,14 +143,35 @@ final class Qa_Assistant {
             $alias = isset($settings['alias']) ? $settings['alias'] : $plugin_dir;
             
             // Use custom color or generate a random one if not provided
-            $color = isset($settings['color']) ? $settings['color'] : '#' . dechex(wp_rand(0x000000, 0xFFFFFF));
+            $color = isset($settings['color']) ? $settings['color'] : '#7ad03a';
 
-            // Add node to the admin bar
-            $wp_admin_bar->add_node(array(
-                'id'    => 'git_branch_' . sanitize_title($plugin_dir),
-                'title' => $alias . ' (Branch: <span style="color: ' . $color . ';">' . $branch . '</span>)',
-                'href'  => '',
-            ));
+            // Add node to the admin bar for each plugin directory as a Dropdown Sub Menu Item with the branch name and green color of the branch name under a parent menu item "Git Branches"
+            // If the plugin directory is selected more than 2 times, then add a parent menu item "Git Branches" and add the plugin directory as a child menu item using if else condition
+            if (count($plugin_dirs) > 2) {
+                $wp_admin_bar->add_node(array(
+                    'id'    => 'git_branches',
+                    'title' => '<i class="ab-icon dashicons-share"></i> Git Branches',
+                    'href'  => '',
+                ));
+                $wp_admin_bar->add_node(array(
+                    'id'    => 'git_branch_' . sanitize_title($plugin_dir),
+                    'title' => $alias . ' (<span style="color: ' . $color . ';">' . $branch . '</span>)',
+                    'href'  => '',
+                    'parent' => 'git_branches',
+                ));
+            } else {
+                $wp_admin_bar->add_node(array(
+                    'id'    => 'git_branch_' . sanitize_title($plugin_dir),
+                    'title' => $alias . ' (<span style="color: ' . $color . ';">' . $branch . '</span>)',
+                    'href'  => '',
+                ));
+            }
+         
+            // $wp_admin_bar->add_node(array(
+            //     'id'    => 'git_branch_' . sanitize_title($plugin_dir),
+            //     'title' => $alias . ' (Branch: <span style="color: ' . $color . ';">' . $branch . '</span>)',
+            //     'href'  => '',
+            // ));
         }
     }
 
