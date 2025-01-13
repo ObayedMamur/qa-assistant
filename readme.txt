@@ -14,6 +14,18 @@ TBA Heading
 
 TBA Description
 
+== Services ==
+
+1. Git PHP: https://github.com/czproject/git-php
+Library for working with Git repositories in PHP.
+Library requires PHP 5.6 or later and `git` client (path to Git must be in system variable `PATH`).
+
+Git installers:
+
+* for Linux - https://git-scm.com/download/linux
+* for Windows - https://git-scm.com/download/win
+* for others - https://git-scm.com/downloads
+
 
 == Installation ==
 
