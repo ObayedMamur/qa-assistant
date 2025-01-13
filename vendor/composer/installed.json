@@ -1,14 +1,9 @@
 {
-    "_readme": [
-        "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
-        "This file is @generated automatically"
-    ],
-    "content-hash": "a1dacac3bbd6fac43b49e988ee3285e3",
     "packages": [
         {
             "name": "czproject/git-php",
             "version": "dev-master",
+            "version_normalized": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/czproject/git-php.git",
@@ -26,8 +21,10 @@
             "require-dev": {
                 "nette/tester": "^2.0"
             },
+            "time": "2024-08-18T16:02:29+00:00",
             "default-branch": true,
             "type": "library",
+            "installation-source": "dist",
             "autoload": {
                 "classmap": [
                     "src/"
@@ -61,18 +58,9 @@
                     "type": "stripe"
                 }
             ],
-            "time": "2024-08-18T16:02:29+00:00"
+            "install-path": "../czproject/git-php"
         }
     ],
-    "packages-dev": [],
-    "aliases": [],
-    "minimum-stability": "dev",
-    "stability-flags": {
-        "czproject/git-php": 20
-    },
-    "prefer-stable": false,
-    "prefer-lowest": false,
-    "platform": {},
-    "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "dev": true,
+    "dev-package-names": []
 }

@@ -10,7 +10,9 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {},
+    "require": {
+        "czproject/git-php": "dev-master"
+    },
     "autoload": {
         "psr-4": {
             "QaAssistant\\": "includes/"
