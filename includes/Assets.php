@@ -93,13 +93,13 @@ class Assets {
         foreach ( $scripts as $handle => $script ) {
             $deps = isset( $script['deps'] ) ? $script['deps'] : false;
 
-            wp_register_script( $handle, $script['src'], $deps, $script['version'], true );
+            wp_enqueue_script( $handle, $script['src'], $deps, $script['version'], true );
         }
 
         foreach ( $styles as $handle => $style ) {
             $deps = isset( $style['deps'] ) ? $style['deps'] : false;
 
-            wp_register_style( $handle, $style['src'], $deps, $style['version'] );
+            wp_enqueue_style( $handle, $style['src'], $deps, $style['version'] );
         }
 
         wp_localize_script( 'qa-assistant-admin-script', 'qaAssistant', [

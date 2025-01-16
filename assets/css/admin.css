@@ -1,9 +1,9 @@
-* {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.qa_assistant_git-branch .ab-sub-wrapper {
+    width: auto;
+    height: 300px!important;
+    overflow-y: scroll;
 }
-p {
-    font-size: 16px;
-}
-input[type="submit"] {
-    padding: 8px 20px!important;
+.qa_assistant_git-branch-list-items:hover > div {
+    color: rgb(0, 255, 254)!important;
+    font-weight: bold!important;
 }

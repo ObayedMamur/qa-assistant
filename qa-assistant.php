@@ -26,12 +26,15 @@ final class Qa_Assistant {
      * @var string
      */
     const version = '1.0.0';
+    protected $git;
 
     /**
      * Class construcotr
      */
     private function __construct() {
         $this->define_constants();
+
+        $this->git = new CzProject\GitPhp\Git;
 
         register_activation_hook( __FILE__, [ $this, 'activate' ] );
 
@@ -138,12 +141,17 @@ final class Qa_Assistant {
 
             $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
             $branch = $this->get_git_branch($path);
+
+            // create repo object
+            $repo = $this->git->open($path);
+            // gets name of current branch
+            $branches = $repo->getBranches();
             
             // Use alias or plugin directory name if alias is not provided
             $alias = isset($settings['alias']) ? $settings['alias'] : $plugin_dir;
             
             // Use custom color or generate a random one if not provided
-            $color = isset($settings['color']) ? $settings['color'] : '#7ad03a';
+            $color = isset($settings['color']) ? $settings['color'] : '#00fffe';
 
             // Add node to the admin bar for each plugin directory as a Dropdown Sub Menu Item with the branch name and green color of the branch name under a parent menu item "Git Branches"
             // If the plugin directory is selected more than 2 times, then add a parent menu item "Git Branches" and add the plugin directory as a child menu item using if else condition
@@ -158,13 +166,45 @@ final class Qa_Assistant {
                     'title' => $alias . ' (<span style="color: ' . $color . ';">' . $branch . '</span>)',
                     'href'  => '',
                     'parent' => 'git_branches',
+                    'meta' => array('class' => 'qa_assistant_git-branch'),
                 ));
+                foreach ($branches as $branch) {
+                    $wp_admin_bar->add_node(array(
+                        'id'    => 'git_branch_' . sanitize_title($plugin_dir) . '_' . sanitize_title($branch),
+                        'title' => $branch,
+                        'href'  => '',
+                        'parent' => 'git_branch_' . sanitize_title($plugin_dir),
+                        'meta' => array(
+                            'class' => 'qa_assistant_git-branch-list-items',
+                            'onclick' => 'alert("Branch: ' . $branch . '")',
+                        ),
+                    ));
+                }
             } else {
                 $wp_admin_bar->add_node(array(
                     'id'    => 'git_branch_' . sanitize_title($plugin_dir),
                     'title' => $alias . ' (<span style="color: ' . $color . ';">' . $branch . '</span>)',
                     'href'  => '',
+                    'meta' => array('class' => 'qa_assistant_git-branch'),
                 ));
+                // $wp_admin_bar->add_node(array(
+                //     'id'    => 'branches_1',
+                //     'title' => 'Branch 1',
+                //     'href'  => '',
+                //     'parent' => 'git_branch_' . sanitize_title($plugin_dir),
+                // ));
+                foreach ($branches as $branch) {
+                    $wp_admin_bar->add_node(array(
+                        'id'    => 'git_branch_' . sanitize_title($plugin_dir) . '_' . sanitize_title($branch),
+                        'title' => $branch,
+                        'href'  => '',
+                        'parent' => 'git_branch_' . sanitize_title($plugin_dir),
+                        'meta' => array(
+                            'class' => 'qa_assistant_git-branch-list-items', 
+                            'onclick' => 'alert("Branch: ' . $branch . '")',
+                        ),
+                    ));
+                }
             }
          
             // $wp_admin_bar->add_node(array(
