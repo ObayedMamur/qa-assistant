@@ -38,6 +38,13 @@ class Menu {
     public function settings_page() {
         $settings = new Settings();
 
+        wp_enqueue_style( 'qa-assistant-select2-style' );
+        wp_enqueue_script( 'qa-assistant-select2-script' );
+        wp_enqueue_style( 'qa-assistant-bootstrap-style' );
+        wp_enqueue_script( 'qa-assistant-bootstrap-script' );
+        wp_enqueue_script( 'qa-assistant-popper-js-script' );
+        wp_enqueue_script( 'qa-assistant-jquery-slim-script' );
+
         $available_plugins = $settings->get_available_plugins();
 		$selected_plugin_basename = filter_input( INPUT_GET, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
@@ -67,11 +74,5 @@ class Menu {
     public function enqueue_assets() {
         wp_enqueue_style( 'qa-assistant-admin-style' );
         wp_enqueue_script( 'qa-assistant-admin-script' );
-        wp_enqueue_style( 'qa-assistant-select2-style' );
-        wp_enqueue_script( 'qa-assistant-select2-script' );
-        wp_enqueue_style( 'qa-assistant-bootstrap-style' );
-        wp_enqueue_script( 'qa-assistant-bootstrap-script' );
-        wp_enqueue_script( 'qa-assistant-popper-js-script' );
-        wp_enqueue_script( 'qa-assistant-jquery-slim-script' );
     }
 }

@@ -16,7 +16,7 @@
             <div class="tab-pane fade show active" id="git-settings-tab" role="tabpanel" aria-labelledby="git-settings-tab">
                 <?php if (! empty($available_plugins)) { ?>
 
-                    <form method="post" action="<?php echo esc_url($current_url); ?>" class="space-y-4">
+                    <form method="post" action="<?php echo esc_url('#'); ?>" class="space-y-4">
                         <?php wp_nonce_field('qa_assistant_settings_form_action', 'qa_assistant_settings_form_nonce'); ?>
 
                         <h2>
