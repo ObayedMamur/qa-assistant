@@ -5,10 +5,17 @@
 
         $(document).on('click', '.qa_assistant_git-branch-list-items', function() {
             let elementId = $(this).attr('id');
-
             let pluginDir = getPluginSlug(elementId);
-            
             let branchId = elementId.split('_').pop();
+
+            let $this = $(this);
+
+            // Remove any existing loaders first
+            $this.find('.qa-loader').remove();
+
+            // Add loader inside the <a> tag
+            let loader = $('<span class="qa-loader" style="margin-left: 5px;">⏳</span>');
+            $this.children().first().append(loader);
 
             $.ajax({
                 url: qaAssistant.ajaxUrl,
@@ -21,11 +28,14 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        // reload the page
                         location.reload();
                     } else {
                         alert('Something Went Wrong! ❌');
                     }
+                },
+                complete: function() {
+                    // Remove loader after request is complete
+                    loader.remove();
                 }
             });
         });
@@ -36,6 +46,5 @@
         }
 
     });
-
 
 })(jQuery);
