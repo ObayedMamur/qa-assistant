@@ -34,6 +34,7 @@ class Ajax {
         $repo = $this->git->open($path);
         // gets name of current branch
         // $branches = $repo->getBranches();
+        $repo->pull(['origin', $branch]);
         $repo->checkout($branch);
 
         $response = [
