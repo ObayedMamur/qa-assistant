@@ -1,6 +1,6 @@
 <div class="wrap">
 
-    <h1><?php esc_html_e('QA Assistant Settings', 'qa-assistant'); ?></h1>
+    <h1><?php esc_html_e('QA Assistant', 'qa-assistant'); ?></h1>
     
     <div class="qa-assistant-content">
 
