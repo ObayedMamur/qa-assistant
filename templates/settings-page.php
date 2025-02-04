@@ -1,22 +1,21 @@
 <div class="wrap">
 
-    <h1 class="text-center badge badge-success"><?php esc_html_e('QA Assistant Settings', 'qa-assistant'); ?></h1>
+    <h1><?php esc_html_e('QA Assistant Settings', 'qa-assistant'); ?></h1>
     
-    <div class="qa-assistant-content container mt-5">
+    <div class="qa-assistant-content">
 
+        <h1>Settings</h1>
+        <div class="qa-assistant-tabs" id="settingsTab" role="tablist">
+            <div class="qa-assistant-tab-item">
+                <a class="qa-assistant-tab-link active" id="git-settings-tab" data-tab="git-settings-tab" href="#git-settings-tab" role="tab" aria-controls="git-settings-tab" aria-selected="true">Git Settings</a>
+            </div>
+        </div>
 
-        <h1 class="text-center">Settings</h1>
-        <ul class="nav nav-tabs" id="settingsTab" role="tablist">
-            <li class="nav-item">
-                <a class="nav-link active" id="git-settings-tab" data-bs-toggle="tab" href="#git-settings-tab" role="tab" aria-controls="git-settings-tab" aria-selected="true">Git Settings</a>
-            </li>
-        </ul>
-
-        <div class="tab-content mt-3" id="settingsTabContent">
-            <div class="tab-pane fade show active" id="git-settings-tab" role="tabpanel" aria-labelledby="git-settings-tab">
+        <div class="qa-assistant-tab-content" id="settingsTabContent">
+            <div class="qa-assistant-tab-pane active" id="git-settings-tab" role="tabpanel" aria-labelledby="git-settings-tab">
                 <?php if (! empty($available_plugins)) { ?>
 
-                    <form method="post" action="<?php echo esc_url('#'); ?>" class="space-y-4">
+                    <form method="post" action="<?php echo esc_url('#'); ?>" class="qa-assistant-form">
                         <?php wp_nonce_field('qa_assistant_settings_form_action', 'qa_assistant_settings_form_nonce'); ?>
 
                         <h2>
@@ -52,7 +51,6 @@
                 <?php } ?>
             </div>
         </div>
-
 
     </div>
 
