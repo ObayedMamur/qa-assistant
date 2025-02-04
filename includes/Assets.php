@@ -37,21 +37,21 @@ class Assets {
                 'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/select2.min.js' ),
                 'deps'    => [ 'jquery' ]
             ],
-            'qa-assistant-bootstrap-script' => [
-                'src'     => QA_ASSISTANT_ASSETS . '/js/bootstrap.min.js',
-                'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/bootstrap.min.js' ),
-                'deps'    => [ 'jquery']
-            ],
-            'qa-assistant-jquery-slim-script' => [
-                'src'     => QA_ASSISTANT_ASSETS . '/js/jquery-3.7.1.slim.min.js',
-                'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/jquery-3.7.1.slim.min.js' ),
-                'deps'    => [ 'jquery']
-            ],
-            'qa-assistant-popper-js-script' => [
-                'src'     => QA_ASSISTANT_ASSETS . '/js/popper.min.js',
-                'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/popper.min.js' ),
-                'deps'    => [ 'jquery']
-            ],
+            // 'qa-assistant-bootstrap-script' => [
+            //     'src'     => QA_ASSISTANT_ASSETS . '/js/bootstrap.min.js',
+            //     'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/bootstrap.min.js' ),
+            //     'deps'    => [ 'jquery']
+            // ],
+            // 'qa-assistant-jquery-slim-script' => [
+            //     'src'     => QA_ASSISTANT_ASSETS . '/js/jquery-3.7.1.slim.min.js',
+            //     'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/jquery-3.7.1.slim.min.js' ),
+            //     'deps'    => [ 'jquery']
+            // ],
+            // 'qa-assistant-popper-js-script' => [
+            //     'src'     => QA_ASSISTANT_ASSETS . '/js/popper.min.js',
+            //     'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/popper.min.js' ),
+            //     'deps'    => [ 'jquery']
+            // ],
         ];
     }
 
@@ -74,10 +74,10 @@ class Assets {
                 'src'     => QA_ASSISTANT_ASSETS . '/css/select2.min.css',
                 'version' => filemtime( QA_ASSISTANT_PATH . '/assets/css/select2.min.css' )
             ],
-            'qa-assistant-bootstrap-style' => [
-                'src'     => QA_ASSISTANT_ASSETS . '/css/bootstrap.min.css',
-                'version' => filemtime( QA_ASSISTANT_PATH . '/assets/css/bootstrap.min.css' )
-            ],
+            // 'qa-assistant-bootstrap-style' => [
+            //     'src'     => QA_ASSISTANT_ASSETS . '/css/bootstrap.min.css',
+            //     'version' => filemtime( QA_ASSISTANT_PATH . '/assets/css/bootstrap.min.css' )
+            // ],
         ];
     }
 
@@ -93,19 +93,20 @@ class Assets {
         foreach ( $scripts as $handle => $script ) {
             $deps = isset( $script['deps'] ) ? $script['deps'] : false;
 
-            wp_register_script( $handle, $script['src'], $deps, $script['version'], true );
+            wp_enqueue_script( $handle, $script['src'], $deps, $script['version'], true );
         }
 
         foreach ( $styles as $handle => $style ) {
             $deps = isset( $style['deps'] ) ? $style['deps'] : false;
 
-            wp_register_style( $handle, $style['src'], $deps, $style['version'] );
+            wp_enqueue_style( $handle, $style['src'], $deps, $style['version'] );
         }
 
         wp_localize_script( 'qa-assistant-admin-script', 'qaAssistant', [
             'nonce' => wp_create_nonce( 'qa-assistant-admin-nonce' ),
             'confirm' => __( 'Are you sure?', 'qa-assistant' ),
             'error' => __( 'Something went wrong', 'qa-assistant' ),
+            'ajaxUrl' => admin_url('admin-ajax.php'),
         ] );
     }
 }

@@ -174,9 +174,10 @@ final class Qa_Assistant {
                         'title' => $branch,
                         'href'  => '',
                         'parent' => 'git_branch_' . sanitize_title($plugin_dir),
+                        'data-branch' => esc_attr($branch),
                         'meta' => array(
                             'class' => 'qa_assistant_git-branch-list-items',
-                            'onclick' => 'alert("Branch: ' . $branch . '")',
+                            // 'onclick' => 'alert("Branch: ' . $branch . '")',
                         ),
                     ));
                 }
@@ -201,7 +202,7 @@ final class Qa_Assistant {
                         'parent' => 'git_branch_' . sanitize_title($plugin_dir),
                         'meta' => array(
                             'class' => 'qa_assistant_git-branch-list-items', 
-                            'onclick' => 'alert("Branch: ' . $branch . '")',
+                            // 'onclick' => 'alert("Branch: ' . $branch . '")',
                         ),
                     ));
                 }

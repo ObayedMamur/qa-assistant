@@ -1,9 +1,11 @@
-.tools_page_qa-assistant .qa_assistant_git-branch .ab-sub-wrapper {
+.qa_assistant_git-branch .ab-sub-wrapper {
     width: auto;
     height: 300px!important;
     overflow-y: scroll;
 }
-.tools_page_qa-assistant .qa_assistant_git-branch-list-items:hover > div {
+.qa_assistant_git-branch-list-items:hover > div {
     color: rgb(0, 255, 254)!important;
     font-weight: bold!important;
+    cursor: pointer!important;
+    border: 1px solid rgb(0, 255, 254)!important;
 }
