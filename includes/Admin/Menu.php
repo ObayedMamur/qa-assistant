@@ -48,6 +48,10 @@ class Menu {
         $available_plugins = $settings->get_available_plugins();
 		$selected_plugin_basename = filter_input( INPUT_GET, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
+		// Get currently selected plugins for the dropdown
+		$current_settings = maybe_unserialize(get_option('qa_assistant_settings', array()));
+		$selected_plugins = isset($current_settings['selected_plugins']) ? $current_settings['selected_plugins'] : array();
+
         // Save settings data
         if ( isset( $_POST['qa_assistant_settings_form_nonce'] ) && wp_verify_nonce( $_POST['qa_assistant_settings_form_nonce'], 'qa_assistant_settings_form_action' ) ) {
             // get posted data

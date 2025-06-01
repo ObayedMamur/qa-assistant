@@ -2,8 +2,8 @@
 /*
 Plugin Name: QA Assistant
 Plugin URI: https://obayedmamur.com/qa-assistant
-Description: A Tool for all the SQA Engineers to help them with Software Quality Assurance.
-Version: 1.0.0
+Description: A comprehensive tool for SQA Engineers with GitHub Desktop-like Git branch switching functionality.
+Version: 1.0.10
 Author: Obayed Mamur
 Author URI: https://obayedmamur.com
 License: GPLv3
@@ -26,23 +26,33 @@ final class Qa_Assistant
      *
      * @var string
      */
-    const version = '1.0.0';
-    protected $git;
+    const version = '1.0.10';
 
     /**
-     * Class construcotr
+     * Git manager instance
+     *
+     * @var QaAssistant\GitManager
+     */
+    protected $gitManager;
+
+    /**
+     * Class constructor
      */
     private function __construct()
     {
         $this->define_constants();
 
-        $this->git = new CzProject\GitPhp\Git;
+        $this->gitManager = new QaAssistant\GitManager();
 
         register_activation_hook(__FILE__, [$this, 'activate']);
 
         add_action('plugins_loaded', [$this, 'init_plugin']);
 
         add_action('admin_bar_menu', [$this, 'add_git_branch_to_admin_bar'], 100);
+
+        // Include test file for development (only in admin and after WordPress is fully loaded)
+        // Temporarily disabled to prevent critical errors
+        // add_action('init', [$this, 'load_development_tools']);
     }
 
     /**
@@ -110,25 +120,27 @@ final class Qa_Assistant
         $installer->run();
     }
 
-    // Show Git branches of plugin directories in WP Admin Bar
+    /**
+     * Load development tools safely after WordPress is fully loaded
+     *
+     * @return void
+     */
+    public function load_development_tools()
+    {
+        if (is_admin() && defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')) {
+            include_once QA_ASSISTANT_PATH . '/tests/test-git-manager.php';
+        }
+    }
+
+    /**
+     * Get current Git branch for a given path
+     *
+     * @param string $path Repository path
+     * @return string|false Current branch name or false on failure
+     */
     public function get_git_branch($path)
     {
-        $git_dir = $path . '/.git';
-
-        // Check if the .git directory exists
-        if (!is_dir($git_dir)) {
-            return false;
-        }
-
-        $git_head_file = $path . '/.git/HEAD';
-        if (file_exists($git_head_file)) {
-            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-            $contents = file_get_contents($git_head_file);
-            if (strpos($contents, 'ref:') === 0) {
-                return trim(str_replace('ref: refs/heads/', '', $contents));
-            }
-        }
-        return false;
+        return $this->gitManager->getCurrentBranch($path);
     }
 
     public function add_git_branch_to_admin_bar($wp_admin_bar)
@@ -155,14 +167,13 @@ final class Qa_Assistant
         foreach ($plugin_dirs as $plugin_dir => $settings) {
 
             $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
-            $branch = $this->get_git_branch($path);
-            if (! $branch) {
+            $currentBranch = $this->get_git_branch($path);
+            if (! $currentBranch) {
                 continue;
             }
-            // create repo object
-            $repo = $this->git->open($path);
-            // gets name of current branch
-            $branches = $repo->getBranches();
+
+            // Get all branches using GitManager
+            $branches = $this->gitManager->getBranches($path);
 
             // Use alias or plugin directory name if alias is not provided
             $alias = isset($settings['alias']) ? $settings['alias'] : $plugin_dir;
@@ -180,47 +191,104 @@ final class Qa_Assistant
                 ));
                 $wp_admin_bar->add_node(array(
                     'id'    => 'git_branch_' . sanitize_title($plugin_dir),
-                    'title' => $alias . ' (<span style="color: ' . $color . ';">' . $branch . '</span>)',
+                    'title' => $alias . ' (<span style="color: ' . $color . ';">' . $currentBranch . '</span>)',
                     'href'  => '',
                     'parent' => 'git_branches',
                     'meta' => array('class' => 'qa_assistant_git-branch'),
                 ));
-                foreach ($branches as $branch) {
+
+                // Add pull button for current branch
+                $pull_button_id = 'git_pull_' . sanitize_title($plugin_dir);
+                $wp_admin_bar->add_node(array(
+                    'id'    => $pull_button_id,
+                    'title' => '⬇️ Pull Latest Changes',
+                    'href'  => '#',
+                    'parent' => 'git_branch_' . sanitize_title($plugin_dir),
+                    'meta' => array(
+                        'class' => 'qa-pull-button',
+                        'onclick' => 'qaAssistantPull("' . esc_js($plugin_dir) . '"); return false;'
+                    ),
+                ));
+
+                // Add search hint for branches if there are many branches
+                if (count($branches) > 3) {
                     $wp_admin_bar->add_node(array(
-                        'id'    => 'git_branch_' . sanitize_title($plugin_dir) . '_' . sanitize_title($branch),
-                        'title' => esc_attr($branch),
+                        'id'    => 'git_branch_search_hint_' . sanitize_title($plugin_dir),
+                        'title' => '🔍 Type to search branches...<span class="qa-search-cursor">|</span>',
                         'href'  => '#',
                         'parent' => 'git_branch_' . sanitize_title($plugin_dir),
-                        'data-branch' => esc_attr($branch),
+                        'meta' => array('class' => 'qa-branch-search-hint'),
+                    ));
+                }
+                foreach ($branches as $branchItem) {
+                    $isCurrentBranch = ($branchItem === $currentBranch);
+                    $branchClass = 'qa_assistant_git-branch-list-items';
+                    if ($isCurrentBranch) {
+                        $branchClass .= ' current-branch';
+                    }
+
+                    $wp_admin_bar->add_node(array(
+                        'id'    => 'git_branch_' . sanitize_title($plugin_dir) . '_' . sanitize_title($branchItem),
+                        'title' => esc_attr($branchItem),
+                        'href'  => '#',
+                        'parent' => 'git_branch_' . sanitize_title($plugin_dir),
+                        'data-branch' => esc_attr($branchItem),
                         'meta' => array(
-                            'class' => 'qa_assistant_git-branch-list-items',
-                            // 'onclick' => 'alert("Branch: ' . $branch . '")',
+                            'class' => $branchClass,
+                            'data-plugin-dir' => esc_attr($plugin_dir),
+                            'data-branch-name' => esc_attr($branchItem),
                         ),
                     ));
                 }
             } else {
                 $wp_admin_bar->add_node(array(
                     'id'    => 'git_branch_' . sanitize_title($plugin_dir),
-                    'title' => $alias . ' (<span style="color: ' . $color . ';">' . $branch . '</span>)',
+                    'title' => $alias . ' (<span style="color: ' . $color . ';">' . $currentBranch . '</span>)',
                     'href'  => '',
                     'meta' => array('class' => 'qa_assistant_git-branch'),
                 ));
-                // $wp_admin_bar->add_node(array(
-                //     'id'    => 'branches_1',
-                //     'title' => 'Branch 1',
-                //     'href'  => '',
-                //     'parent' => 'git_branch_' . sanitize_title($plugin_dir),
-                // ));
-                foreach ($branches as $branch) {
+
+                // Add pull button for current branch
+                $pull_button_id = 'git_pull_' . sanitize_title($plugin_dir);
+                $wp_admin_bar->add_node(array(
+                    'id'    => $pull_button_id,
+                    'title' => '⬇️ Pull Latest Changes',
+                    'href'  => '#',
+                    'parent' => 'git_branch_' . sanitize_title($plugin_dir),
+                    'meta' => array(
+                        'class' => 'qa-pull-button',
+                        'onclick' => 'qaAssistantPull("' . esc_js($plugin_dir) . '"); return false;'
+                    ),
+                ));
+
+                // Add search hint for branches if there are many branches
+                if (count($branches) > 3) {
                     $wp_admin_bar->add_node(array(
-                        'id'    => 'git_branch_' . sanitize_title($plugin_dir) . '_' . sanitize_title($branch),
-                        'title' => esc_attr($branch),
+                        'id'    => 'git_branch_search_hint_' . sanitize_title($plugin_dir),
+                        'title' => '🔍 Type to search branches...<span class="qa-search-cursor">|</span>',
                         'href'  => '#',
                         'parent' => 'git_branch_' . sanitize_title($plugin_dir),
-                        'data-branch' => esc_attr($branch),
+                        'meta' => array('class' => 'qa-branch-search-hint'),
+                    ));
+                }
+
+                foreach ($branches as $branchItem) {
+                    $isCurrentBranch = ($branchItem === $currentBranch);
+                    $branchClass = 'qa_assistant_git-branch-list-items';
+                    if ($isCurrentBranch) {
+                        $branchClass .= ' current-branch';
+                    }
+
+                    $wp_admin_bar->add_node(array(
+                        'id'    => 'git_branch_' . sanitize_title($plugin_dir) . '_' . sanitize_title($branchItem),
+                        'title' => esc_attr($branchItem),
+                        'href'  => '#',
+                        'parent' => 'git_branch_' . sanitize_title($plugin_dir),
+                        'data-branch' => esc_attr($branchItem),
                         'meta' => array(
-                            'class' => 'qa_assistant_git-branch-list-items',
-                            // 'onclick' => 'alert("Branch: ' . $branch . '")',
+                            'class' => $branchClass,
+                            'data-plugin-dir' => esc_attr($plugin_dir),
+                            'data-branch-name' => esc_attr($branchItem),
                         ),
                     ));
                 }
