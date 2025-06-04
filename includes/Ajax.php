@@ -33,6 +33,9 @@ class Ajax
         add_action('wp_ajax_qa_assistant_pull_branch', [$this, 'pull_branch']);
         add_action('wp_ajax_qa_assistant_check_pull_status', [$this, 'check_pull_status']);
 
+        // Branch refresh
+        add_action('wp_ajax_qa_assistant_refresh_branches', [$this, 'refresh_branches']);
+
         // Legacy support
         add_action('wp_ajax_qa_assistant_get_branch_data', [$this, 'get_branch_data']);
 
@@ -197,6 +200,53 @@ class Ajax
             ]);
         } else {
             wp_send_json_success($comparison);
+        }
+    }
+
+    /**
+     * Refresh branches by fetching from remote
+     */
+    public function refresh_branches()
+    {
+        // Verify nonce for security
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
+            wp_send_json_error([
+                'message' => 'Security check failed.'
+            ]);
+        }
+
+        $plugin_dir = sanitize_text_field(wp_unslash($_POST['plugin_dir'] ?? ''));
+
+        if (empty($plugin_dir)) {
+            wp_send_json_error([
+                'message' => 'Plugin directory is required.'
+            ]);
+        }
+
+        $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+
+        // Validate plugin directory exists
+        if (!is_dir($path)) {
+            wp_send_json_error([
+                'message' => 'Plugin directory does not exist.'
+            ]);
+        }
+
+        // Refresh branches
+        $result = $this->gitManager->refreshBranches($path);
+
+        if ($result['success']) {
+            wp_send_json_success([
+                'message' => $result['message'],
+                'branches' => $result['branches'],
+                'current_branch' => $result['current_branch'],
+                'plugin_dir' => $plugin_dir,
+                'fetch_success' => $result['fetch_result']['success'] ?? false
+            ]);
+        } else {
+            wp_send_json_error([
+                'message' => $result['error']
+            ]);
         }
     }
 

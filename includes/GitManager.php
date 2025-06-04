@@ -57,9 +57,10 @@ class GitManager
      * Get all branches for a repository
      *
      * @param string $path Repository path
+     * @param bool $fetch Whether to fetch from remote first
      * @return array Array of branch names
      */
-    public function getBranches($path)
+    public function getBranches($path, $fetch = true)
     {
         if (!$this->isGitRepository($path)) {
             return [];
@@ -67,7 +68,43 @@ class GitManager
 
         try {
             $repo = $this->git->open($path);
-            return $repo->getBranches();
+
+            // Fetch latest branches from remote first
+            if ($fetch) {
+                try {
+                    $repo->execute(['fetch', '--all', '--prune']);
+                } catch (GitException $e) {
+                    // Fetch might fail (no remote, network issues), continue anyway
+                }
+            }
+
+            // Get all branches (local and remote)
+            $allBranches = $repo->getBranches();
+            $localBranches = [];
+            $remoteBranches = [];
+
+            foreach ($allBranches as $branch) {
+                if (strpos($branch, 'remotes/origin/') === 0) {
+                    // Extract branch name from remote reference
+                    $branchName = str_replace('remotes/origin/', '', $branch);
+                    // Skip HEAD reference
+                    if ($branchName !== 'HEAD') {
+                        $remoteBranches[] = $branchName;
+                    }
+                } else {
+                    $localBranches[] = $branch;
+                }
+            }
+
+            // Combine local branches with remote branches that don't have local counterparts
+            $combinedBranches = $localBranches;
+            foreach ($remoteBranches as $remoteBranch) {
+                if (!in_array($remoteBranch, $localBranches)) {
+                    $combinedBranches[] = $remoteBranch;
+                }
+            }
+
+            return $combinedBranches;
         } catch (GitException $e) {
             // Silently handle error - return empty array
             return [];
@@ -127,13 +164,13 @@ class GitManager
 
         try {
             $repo = $this->git->open($path);
-            
-            // Validate branch exists
-            $branches = $repo->getBranches();
+
+            // Fetch latest branches and validate branch exists
+            $branches = $this->getBranches($path, true);
             if (!in_array($branch, $branches)) {
                 return [
                     'success' => false,
-                    'error' => "Branch '{$branch}' does not exist"
+                    'error' => "Branch '{$branch}' does not exist. Try refreshing to see latest branches."
                 ];
             }
 
@@ -151,15 +188,33 @@ class GitManager
                 $repo->execute(['reset', '--hard']);
             }
 
-            // Checkout the branch
-            $repo->checkout($branch);
-
-            // Try to pull latest changes
+            // Check if this is a local branch or needs to be created from remote
+            $localBranches = [];
             try {
-                $repo->execute(['pull', 'origin', $branch]);
+                $localBranches = $repo->execute(['branch', '--list', $branch]);
             } catch (GitException $e) {
-                // Pull might fail if no remote or other issues, but checkout succeeded
-                // Silently continue
+                // Continue if command fails
+            }
+
+            if (empty($localBranches)) {
+                // Branch doesn't exist locally, create it from remote
+                try {
+                    $repo->execute(['checkout', '-b', $branch, "origin/{$branch}"]);
+                } catch (GitException $e) {
+                    // If that fails, try regular checkout (might be a local branch)
+                    $repo->checkout($branch);
+                }
+            } else {
+                // Local branch exists, just checkout
+                $repo->checkout($branch);
+
+                // Try to pull latest changes if there's a remote
+                try {
+                    $repo->execute(['pull', 'origin', $branch]);
+                } catch (GitException $e) {
+                    // Pull might fail if no remote or other issues, but checkout succeeded
+                    // Silently continue
+                }
             }
 
             return [
@@ -204,11 +259,11 @@ class GitManager
 
         try {
             $repo = $this->git->open($path);
-            $repo->execute(['fetch', '--all']);
-            
+            $repo->execute(['fetch', '--all', '--prune']);
+
             return [
                 'success' => true,
-                'message' => 'Successfully fetched latest changes'
+                'message' => 'Successfully fetched latest changes and branches'
             ];
         } catch (GitException $e) {
             return [
@@ -216,6 +271,40 @@ class GitManager
                 'error' => 'Failed to fetch changes: ' . $e->getMessage()
             ];
         }
+    }
+
+    /**
+     * Refresh branches by fetching from remote and returning updated list
+     *
+     * @param string $path Repository path
+     * @return array Operation result with branches
+     */
+    public function refreshBranches($path)
+    {
+        if (!$this->isGitRepository($path)) {
+            return [
+                'success' => false,
+                'error' => 'Not a Git repository'
+            ];
+        }
+
+        // Fetch latest changes first
+        $fetchResult = $this->fetchChanges($path);
+        if (!$fetchResult['success']) {
+            // Even if fetch fails, try to get local branches
+        }
+
+        // Get updated branch list
+        $branches = $this->getBranches($path, false); // Don't fetch again
+        $currentBranch = $this->getCurrentBranch($path);
+
+        return [
+            'success' => true,
+            'message' => 'Branches refreshed successfully',
+            'branches' => $branches,
+            'current_branch' => $currentBranch,
+            'fetch_result' => $fetchResult
+        ];
     }
 
     /**

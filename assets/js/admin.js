@@ -381,6 +381,79 @@
             });
         }
 
+        // Global function for refreshing branches (called via onclick)
+        window.qaAssistantRefresh = function(pluginDir) {
+            // Show immediate feedback
+            showNotification('Fetching latest branches from remote...', 'info');
+
+            // Find the button that was clicked and add loading state
+            let $button = $('.qa-refresh-button').filter(function() {
+                return $(this).attr('onclick') && $(this).attr('onclick').includes(pluginDir);
+            });
+
+            if ($button.length > 0) {
+                let originalText = $button.find('.ab-item').text() || $button.text();
+                $button.find('.ab-item').html('<span class="qa-refresh-loader">⟳</span> Refreshing...');
+                $button.addClass('qa-refresh-loading');
+
+                refreshBranches(pluginDir)
+                    .done(function(response) {
+                        if (response.success) {
+                            let message = response.data.fetch_success
+                                ? `Successfully fetched latest branches. Found ${response.data.branches.length} branches.`
+                                : `Refreshed local branches. Found ${response.data.branches.length} branches.`;
+
+                            showNotification(message, 'success');
+
+                            // Reload page to show updated branches
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showNotification(response.data.message || 'Failed to refresh branches', 'error');
+                        }
+                    })
+                    .fail(function(xhr, status, error) {
+                        showNotification('Network error occurred during refresh. Please try again.', 'error');
+                        console.error('Refresh failed:', error);
+                    })
+                    .always(function() {
+                        // Restore button
+                        $button.find('.ab-item').html(originalText);
+                        $button.removeClass('qa-refresh-loading');
+                    });
+            } else {
+                // Fallback if button not found
+                refreshBranches(pluginDir)
+                    .done(function(response) {
+                        if (response.success) {
+                            let message = response.data.fetch_success
+                                ? `Successfully fetched latest branches. Found ${response.data.branches.length} branches.`
+                                : `Refreshed local branches. Found ${response.data.branches.length} branches.`;
+                            showNotification(message, 'success');
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showNotification(response.data.message || 'Failed to refresh branches', 'error');
+                        }
+                    })
+                    .fail(function(xhr, status, error) {
+                        showNotification('Network error occurred during refresh. Please try again.', 'error');
+                        console.error('Refresh failed:', error);
+                    });
+            }
+        };
+
+        // Refresh branches function
+        function refreshBranches(pluginDir) {
+            return $.ajax({
+                url: qaAssistant.ajaxUrl,
+                method: "POST",
+                data: {
+                    action: "qa_assistant_refresh_branches",
+                    nonce: qaAssistant.nonce,
+                    plugin_dir: pluginDir
+                }
+            });
+        }
+
         function getPluginSlug(elementId) {
             let parts = elementId.split("_");
             return parts[2]; // Extract the plugin slug

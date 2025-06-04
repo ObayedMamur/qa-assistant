@@ -201,12 +201,25 @@ final class Qa_Assistant
                 $pull_button_id = 'git_pull_' . sanitize_title($plugin_dir);
                 $wp_admin_bar->add_node(array(
                     'id'    => $pull_button_id,
-                    'title' => '⬇️ Pull Latest Changes',
+                    'title' => 'Pull Latest Changes <svg class="qa-icon qa-pull-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7,10 12,15 17,10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
                     'href'  => '#',
                     'parent' => 'git_branch_' . sanitize_title($plugin_dir),
                     'meta' => array(
                         'class' => 'qa-pull-button',
                         'onclick' => 'qaAssistantPull("' . esc_js($plugin_dir) . '"); return false;'
+                    ),
+                ));
+
+                // Add refresh button to fetch latest branches
+                $refresh_button_id = 'git_refresh_' . sanitize_title($plugin_dir);
+                $wp_admin_bar->add_node(array(
+                    'id'    => $refresh_button_id,
+                    'title' => 'Refresh Branches <svg class="qa-icon qa-refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg>',
+                    'href'  => '#',
+                    'parent' => 'git_branch_' . sanitize_title($plugin_dir),
+                    'meta' => array(
+                        'class' => 'qa-refresh-button',
+                        'onclick' => 'qaAssistantRefresh("' . esc_js($plugin_dir) . '"); return false;'
                     ),
                 ));
 
@@ -252,12 +265,25 @@ final class Qa_Assistant
                 $pull_button_id = 'git_pull_' . sanitize_title($plugin_dir);
                 $wp_admin_bar->add_node(array(
                     'id'    => $pull_button_id,
-                    'title' => '⬇️ Pull Latest Changes',
+                    'title' => 'Pull Latest Changes <svg class="qa-icon qa-pull-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7,10 12,15 17,10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
                     'href'  => '#',
                     'parent' => 'git_branch_' . sanitize_title($plugin_dir),
                     'meta' => array(
                         'class' => 'qa-pull-button',
                         'onclick' => 'qaAssistantPull("' . esc_js($plugin_dir) . '"); return false;'
+                    ),
+                ));
+
+                // Add refresh button to fetch latest branches
+                $refresh_button_id = 'git_refresh_' . sanitize_title($plugin_dir);
+                $wp_admin_bar->add_node(array(
+                    'id'    => $refresh_button_id,
+                    'title' => 'Refresh Branches <svg class="qa-icon qa-refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg>',
+                    'href'  => '#',
+                    'parent' => 'git_branch_' . sanitize_title($plugin_dir),
+                    'meta' => array(
+                        'class' => 'qa-refresh-button',
+                        'onclick' => 'qaAssistantRefresh("' . esc_js($plugin_dir) . '"); return false;'
                     ),
                 ));
 
