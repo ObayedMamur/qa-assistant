@@ -53,16 +53,12 @@ class Menu {
 		$selected_plugins = isset($current_settings['selected_plugins']) ? $current_settings['selected_plugins'] : array();
 
         // Save settings data
-        if ( isset( $_POST['qa_assistant_settings_form_nonce'] ) && wp_verify_nonce( $_POST['qa_assistant_settings_form_nonce'], 'qa_assistant_settings_form_action' ) ) {
-            // get posted data
-            $selected_plugins = $_POST['qa_assistant_plugins'];
-
-            if ( ! is_array( $selected_plugins ) ) {
-                $selected_plugins = [];
+        if ( isset( $_POST['qa_assistant_settings_form_nonce'] ) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['qa_assistant_settings_form_nonce'])), 'qa_assistant_settings_form_action' ) ) {
+            // get posted data and sanitize
+            $selected_plugins = [];
+            if (isset($_POST['qa_assistant_plugins']) && is_array($_POST['qa_assistant_plugins'])) {
+                $selected_plugins = array_map('sanitize_text_field', wp_unslash($_POST['qa_assistant_plugins']));
             }
-
-            // sanitize array
-            $selected_plugins = array_map( 'sanitize_text_field', $selected_plugins );
 
             $settings->save_settings( $selected_plugins);
         }

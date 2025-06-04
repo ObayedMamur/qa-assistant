@@ -1,10 +1,10 @@
-=== QA Assistant - A Tool for all the SQA Engineers to help them with Software Quality Assurance ===
+=== QA Assistant ===
 Contributors: obayedmamur, nhrrob
 Tags: qa assistant, quality assurance, help, sqa helper tool
 Requires at least: 5.0
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.0
 License: GPLv3
 License URI: https://opensource.org/licenses/GPL-3.0
 
@@ -67,7 +67,10 @@ Absolutely! You can use it to help you test WordPress Plugins/Themes.
 
 == Screenshots ==
 
-1. Overview of Features
+1. Git branch switching interface in WordPress admin bar - easily switch between branches with one click
+2. Plugin settings page showing selected plugins with Git status indicators
+3. Real-time notifications during branch switching operations with professional toast messages
+4. Safety warning when switching branches with uncommitted changes, including force switch option
 
 
 == Changelog ==

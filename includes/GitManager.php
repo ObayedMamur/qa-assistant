@@ -47,7 +47,7 @@ class GitManager
                 }
             }
         } catch (\Exception $e) {
-            error_log('QA Assistant - Error getting current branch: ' . $e->getMessage());
+            // Silently handle error - branch detection failed
         }
 
         return false;
@@ -69,7 +69,7 @@ class GitManager
             $repo = $this->git->open($path);
             return $repo->getBranches();
         } catch (GitException $e) {
-            error_log('QA Assistant - Error getting branches: ' . $e->getMessage());
+            // Silently handle error - return empty array
             return [];
         }
     }
@@ -101,7 +101,6 @@ class GitManager
                 'branches' => $this->getBranches($path)
             ];
         } catch (GitException $e) {
-            error_log('QA Assistant - Error getting repository status: ' . $e->getMessage());
             return [
                 'valid' => false,
                 'error' => $e->getMessage()
@@ -160,7 +159,7 @@ class GitManager
                 $repo->execute(['pull', 'origin', $branch]);
             } catch (GitException $e) {
                 // Pull might fail if no remote or other issues, but checkout succeeded
-                error_log('QA Assistant - Warning during pull: ' . $e->getMessage());
+                // Silently continue
             }
 
             return [
@@ -170,7 +169,6 @@ class GitManager
             ];
 
         } catch (GitException $e) {
-            error_log('QA Assistant - Error switching branch: ' . $e->getMessage());
             return [
                 'success' => false,
                 'error' => 'Git operation failed: ' . $e->getMessage()
@@ -213,7 +211,6 @@ class GitManager
                 'message' => 'Successfully fetched latest changes'
             ];
         } catch (GitException $e) {
-            error_log('QA Assistant - Error fetching changes: ' . $e->getMessage());
             return [
                 'success' => false,
                 'error' => 'Failed to fetch changes: ' . $e->getMessage()
@@ -242,7 +239,7 @@ class GitManager
                 $repo->execute(['fetch', 'origin']);
             } catch (GitException $e) {
                 // Fetch might fail, continue anyway
-                error_log('QA Assistant - Warning during fetch: ' . $e->getMessage());
+                // Silently continue
             }
 
             // Get ahead/behind counts
@@ -270,7 +267,6 @@ class GitManager
                 ];
             }
         } catch (GitException $e) {
-            error_log('QA Assistant - Error getting branch comparison: ' . $e->getMessage());
             return ['error' => $e->getMessage()];
         }
     }
@@ -321,7 +317,6 @@ class GitManager
             ];
 
         } catch (GitException $e) {
-            error_log('QA Assistant - Error pulling changes: ' . $e->getMessage());
             return [
                 'success' => false,
                 'error' => 'Pull operation failed: ' . $e->getMessage()

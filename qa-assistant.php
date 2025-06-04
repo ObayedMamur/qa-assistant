@@ -3,7 +3,7 @@
 Plugin Name: QA Assistant
 Plugin URI: https://obayedmamur.com/qa-assistant
 Description: A comprehensive tool for SQA Engineers with GitHub Desktop-like Git branch switching functionality.
-Version: 1.0.10
+Version: 1.0.0
 Author: Obayed Mamur
 Author URI: https://obayedmamur.com
 License: GPLv3
@@ -26,7 +26,7 @@ final class Qa_Assistant
      *
      * @var string
      */
-    const version = '1.0.10';
+    const version = '1.0.0';
 
     /**
      * Git manager instance
@@ -191,7 +191,7 @@ final class Qa_Assistant
                 ));
                 $wp_admin_bar->add_node(array(
                     'id'    => 'git_branch_' . sanitize_title($plugin_dir),
-                    'title' => $alias . ' (<span style="color: ' . $color . ';">' . $currentBranch . '</span>)',
+                    'title' => esc_html($alias) . ' (<span style="color: ' . esc_attr($color) . ';">' . esc_html($currentBranch) . '</span>)',
                     'href'  => '',
                     'parent' => 'git_branches',
                     'meta' => array('class' => 'qa_assistant_git-branch'),
@@ -243,7 +243,7 @@ final class Qa_Assistant
             } else {
                 $wp_admin_bar->add_node(array(
                     'id'    => 'git_branch_' . sanitize_title($plugin_dir),
-                    'title' => $alias . ' (<span style="color: ' . $color . ';">' . $currentBranch . '</span>)',
+                    'title' => esc_html($alias) . ' (<span style="color: ' . esc_attr($color) . ';">' . esc_html($currentBranch) . '</span>)',
                     'href'  => '',
                     'meta' => array('class' => 'qa_assistant_git-branch'),
                 ));

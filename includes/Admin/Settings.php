@@ -37,6 +37,8 @@ class Settings {
 
         update_option( 'qa_assistant_settings', maybe_serialize( $settings ) );
         // Reload the page after saving
-        wp_safe_redirect( $_SERVER['REQUEST_URI'] );
+        if (isset($_SERVER['REQUEST_URI'])) {
+            wp_safe_redirect( esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) );
+        }
     }
 }

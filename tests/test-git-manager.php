@@ -167,16 +167,16 @@ class QA_Assistant_GitManager_Test
             $status = $result['status'] ?? 'unknown';
             $statusClass = $status === 'pass' ? 'notice-success' : 'notice-error';
             
-            echo '<div class="' . $statusClass . '" style="margin: 10px 0; padding: 10px;">';
-            echo '<strong>' . ucfirst(str_replace('_', ' ', $testName)) . ':</strong> ';
-            echo $result['message'];
-            
+            echo '<div class="' . esc_attr($statusClass) . '" style="margin: 10px 0; padding: 10px;">';
+            echo '<strong>' . esc_html(ucfirst(str_replace('_', ' ', $testName))) . ':</strong> ';
+            echo esc_html($result['message']);
+
             if (isset($result['current_branch'])) {
-                echo '<br><em>Current Branch: ' . ($result['current_branch'] ?: 'Not a Git repository') . '</em>';
+                echo '<br><em>Current Branch: ' . esc_html($result['current_branch'] ?: 'Not a Git repository') . '</em>';
             }
-            
+
             if (isset($result['branches']) && is_array($result['branches'])) {
-                echo '<br><em>Available Branches: ' . implode(', ', $result['branches']) . '</em>';
+                echo '<br><em>Available Branches: ' . esc_html(implode(', ', $result['branches'])) . '</em>';
             }
             
             echo '</div>';
@@ -190,7 +190,8 @@ class QA_Assistant_GitManager_Test
 if (is_admin()) {
     add_action('admin_notices', function() {
         if (function_exists('current_user_can') && current_user_can('manage_options') &&
-            isset($_GET['qa_assistant_test']) && $_GET['qa_assistant_test'] === '1') {
+            isset($_GET['qa_assistant_test']) && sanitize_text_field(wp_unslash($_GET['qa_assistant_test'])) === '1' &&
+            isset($_GET['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'qa_assistant_test')) {
             $test = new QA_Assistant_GitManager_Test();
             $test->displayTestResults();
         }

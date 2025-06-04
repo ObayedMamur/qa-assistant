@@ -45,16 +45,16 @@ class Ajax
     public function switch_branch()
     {
         // Verify nonce for security
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'qa-assistant-admin-nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
             wp_send_json_error([
                 'message' => 'Security check failed. Please refresh the page and try again.'
             ]);
         }
 
         // Validate and sanitize input
-        $plugin_dir = sanitize_text_field($_POST['plugin_dir'] ?? '');
-        $branch = sanitize_text_field($_POST['branch'] ?? '');
-        $force = filter_var($_POST['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $plugin_dir = sanitize_text_field(wp_unslash($_POST['plugin_dir'] ?? ''));
+        $branch = sanitize_text_field(wp_unslash($_POST['branch'] ?? ''));
+        $force = filter_var(wp_unslash($_POST['force'] ?? false), FILTER_VALIDATE_BOOLEAN);
 
         if (empty($plugin_dir) || empty($branch)) {
             wp_send_json_error([
@@ -94,13 +94,13 @@ class Ajax
     public function get_repository_status()
     {
         // Verify nonce for security
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'qa-assistant-admin-nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
             wp_send_json_error([
                 'message' => 'Security check failed.'
             ]);
         }
 
-        $plugin_dir = sanitize_text_field($_POST['plugin_dir'] ?? '');
+        $plugin_dir = sanitize_text_field(wp_unslash($_POST['plugin_dir'] ?? ''));
 
         if (empty($plugin_dir)) {
             wp_send_json_error([
@@ -126,13 +126,13 @@ class Ajax
     public function pull_branch()
     {
         // Verify nonce for security
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'qa-assistant-admin-nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
             wp_send_json_error([
                 'message' => 'Security check failed.'
             ]);
         }
 
-        $plugin_dir = sanitize_text_field($_POST['plugin_dir'] ?? '');
+        $plugin_dir = sanitize_text_field(wp_unslash($_POST['plugin_dir'] ?? ''));
 
         if (empty($plugin_dir)) {
             wp_send_json_error([
@@ -173,14 +173,14 @@ class Ajax
     public function check_pull_status()
     {
         // Verify nonce for security
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'qa-assistant-admin-nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
             wp_send_json_error([
                 'message' => 'Security check failed.'
             ]);
         }
 
-        $plugin_dir = sanitize_text_field($_POST['plugin_dir'] ?? '');
-        $branch = sanitize_text_field($_POST['branch'] ?? '');
+        $plugin_dir = sanitize_text_field(wp_unslash($_POST['plugin_dir'] ?? ''));
+        $branch = sanitize_text_field(wp_unslash($_POST['branch'] ?? ''));
 
         if (empty($plugin_dir) || empty($branch)) {
             wp_send_json_error([
@@ -207,14 +207,14 @@ class Ajax
     public function get_branch_data()
     {
         // Verify nonce for security
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'qa-assistant-admin-nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
             wp_send_json_error([
                 'message' => 'Security check failed.'
             ]);
         }
 
-        $plugin_dir = sanitize_text_field($_POST['plugin_dir'] ?? '');
-        $branch = sanitize_text_field($_POST['branch'] ?? '');
+        $plugin_dir = sanitize_text_field(wp_unslash($_POST['plugin_dir'] ?? ''));
+        $branch = sanitize_text_field(wp_unslash($_POST['branch'] ?? ''));
 
         if (empty($plugin_dir) || empty($branch)) {
             wp_send_json_error([
