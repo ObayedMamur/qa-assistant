@@ -49,10 +49,6 @@ final class Qa_Assistant
         add_action('plugins_loaded', [$this, 'init_plugin']);
 
         add_action('admin_bar_menu', [$this, 'add_git_branch_to_admin_bar'], 100);
-
-        // Include test file for development (only in admin and after WordPress is fully loaded)
-        // Temporarily disabled to prevent critical errors
-        // add_action('init', [$this, 'load_development_tools']);
     }
 
     /**
@@ -93,7 +89,6 @@ final class Qa_Assistant
      */
     public function init_plugin()
     {
-
         new QaAssistant\Assets();
 
         if (defined('DOING_AJAX') && DOING_AJAX) {
@@ -121,59 +116,39 @@ final class Qa_Assistant
     }
 
     /**
-     * Load development tools safely after WordPress is fully loaded
-     *
-     * @return void
-     */
-    public function load_development_tools()
-    {
-        if (is_admin() && defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')) {
-            include_once QA_ASSISTANT_PATH . '/tests/test-git-manager.php';
-        }
-    }
-
-    /**
      * Get current Git branch for a given path
      *
      * @param string $path Repository path
+     * @param bool $force_refresh Whether to bypass cache and fetch fresh data
      * @return string|false Current branch name or false on failure
      */
-    public function get_git_branch($path)
+    public function get_git_branch($path, $force_refresh = false)
     {
-        return $this->gitManager->getCurrentBranch($path);
+        return $this->gitManager->getCurrentBranch($path, $force_refresh);
     }
 
     public function add_git_branch_to_admin_bar($wp_admin_bar)
     {
         // List of plugin directories with their aliases and custom colors
         $qa_assistant_settings = get_option('qa_assistant_settings');
-
         $qa_assistant_settings = maybe_unserialize($qa_assistant_settings);
 
-        if (! is_array($qa_assistant_settings)) {
+        if (!is_array($qa_assistant_settings)) {
             return;
         }
 
         $plugin_dirs = $qa_assistant_settings['selected_plugins'];
-        // index same as value 
         $plugin_dirs = array_combine($plugin_dirs, $plugin_dirs);
 
-        // $plugin_dirs = array(
-        //     'essential-addons-for-elementor-lite' => array('alias' => 'EA-Lite', 'color' => '#33ff57'),
-        //     'essential-addons-elementor' => array('alias' => 'EA-Pro', 'color' => '#33ff57'),
-        //     // Add more plugins here with custom aliases and colors
-        // );
-
         foreach ($plugin_dirs as $plugin_dir => $settings) {
-
             $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
             $currentBranch = $this->get_git_branch($path);
-            if (! $currentBranch) {
+            if (!$currentBranch) {
                 continue;
             }
 
-            // Get all branches using GitManager
-            $branches = $this->gitManager->getBranches($path);
+            // Get all branches using GitManager with caching
+            $branches = $this->gitManager->getBranches($path, false);
 
             // Use alias or plugin directory name if alias is not provided
             $alias = isset($settings['alias']) ? $settings['alias'] : $plugin_dir;
@@ -181,8 +156,7 @@ final class Qa_Assistant
             // Use custom color or generate a random one if not provided
             $color = isset($settings['color']) ? $settings['color'] : '#00fffe';
 
-            // Add node to the admin bar for each plugin directory as a Dropdown Sub Menu Item with the branch name and green color of the branch name under a parent menu item "Git Branches"
-            // If the plugin directory is selected more than 2 times, then add a parent menu item "Git Branches" and add the plugin directory as a child menu item using if else condition
+            // Add node to the admin bar for each plugin directory as a Dropdown Sub Menu Item
             if (count($plugin_dirs) > 2) {
                 $wp_admin_bar->add_node(array(
                     'id'    => 'git_branches',
@@ -319,17 +293,8 @@ final class Qa_Assistant
                     ));
                 }
             }
-
-            // $wp_admin_bar->add_node(array(
-            //     'id'    => 'git_branch_' . sanitize_title($plugin_dir),
-            //     'title' => $alias . ' (Branch: <span style="color: ' . $color . ';">' . $branch . '</span>)',
-            //     'href'  => '',
-            // ));
         }
     }
-
-
-    // End of Plugin Directory Git Branch Show
 }
 
 /**
@@ -342,5 +307,5 @@ function qa_assistant()
     return Qa_Assistant::init();
 }
 
-//call the plugin
+// Call the plugin
 qa_assistant();

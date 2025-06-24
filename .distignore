@@ -40,7 +40,6 @@ yarn-error.log*
 # Composer development dependencies
 composer.json
 composer.lock
-vendor/
 
 # Environment files
 .env

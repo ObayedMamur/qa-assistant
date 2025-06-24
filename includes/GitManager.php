@@ -30,12 +30,20 @@ class GitManager
      * Get current branch for a given path
      *
      * @param string $path Repository path
+     * @param bool $force_refresh Whether to bypass cache and fetch fresh data
      * @return string|false Current branch name or false on failure
      */
-    public function getCurrentBranch($path)
+    public function getCurrentBranch($path, $force_refresh = false)
     {
         if (!$this->isGitRepository($path)) {
             return false;
+        }
+
+        $cache_key = 'qa_assistant_current_branch_' . md5($path);
+        $cached_branch = get_transient($cache_key);
+
+        if ($cached_branch !== false && !$force_refresh) {
+            return $cached_branch;
         }
 
         try {
@@ -43,7 +51,9 @@ class GitManager
             if (file_exists($git_head_file)) {
                 $contents = file_get_contents($git_head_file);
                 if (strpos($contents, 'ref:') === 0) {
-                    return trim(str_replace('ref: refs/heads/', '', $contents));
+                    $branch = trim(str_replace('ref: refs/heads/', '', $contents));
+                    set_transient($cache_key, $branch, 300); // Cache for 5 minutes
+                    return $branch;
                 }
             }
         } catch (\Exception $e) {
@@ -58,12 +68,20 @@ class GitManager
      *
      * @param string $path Repository path
      * @param bool $fetch Whether to fetch from remote first
+     * @param bool $force_refresh Whether to bypass cache and fetch fresh data
      * @return array Array of branch names
      */
-    public function getBranches($path, $fetch = true)
+    public function getBranches($path, $fetch = true, $force_refresh = false)
     {
         if (!$this->isGitRepository($path)) {
             return [];
+        }
+
+        $cache_key = 'qa_assistant_branches_' . md5($path);
+        $cached_branches = get_transient($cache_key);
+
+        if ($cached_branches !== false && !$force_refresh && !$fetch) {
+            return $cached_branches;
         }
 
         try {
@@ -104,10 +122,11 @@ class GitManager
                 }
             }
 
+            set_transient($cache_key, $combinedBranches, 300); // Cache for 5 minutes
             return $combinedBranches;
         } catch (GitException $e) {
-            // Silently handle error - return empty array
-            return [];
+            // Silently handle error - return cached data if available, otherwise empty array
+            return ($cached_branches !== false) ? $cached_branches : [];
         }
     }
 
@@ -115,9 +134,10 @@ class GitManager
      * Get repository status
      *
      * @param string $path Repository path
+     * @param bool $force_refresh Whether to bypass cache and fetch fresh data
      * @return array Status information
      */
-    public function getRepositoryStatus($path)
+    public function getRepositoryStatus($path, $force_refresh = false)
     {
         if (!$this->isGitRepository($path)) {
             return [
@@ -126,17 +146,28 @@ class GitManager
             ];
         }
 
+        $cache_key = 'qa_assistant_repo_status_' . md5($path);
+        $cached_status = get_transient($cache_key);
+
+        if ($cached_status !== false && !$force_refresh) {
+            return $cached_status;
+        }
+
         try {
             $repo = $this->git->open($path);
-            $currentBranch = $this->getCurrentBranch($path);
+            $currentBranch = $this->getCurrentBranch($path, $force_refresh);
             $hasChanges = $repo->hasChanges();
+            $branches = $this->getBranches($path, true, $force_refresh);
             
-            return [
+            $status = [
                 'valid' => true,
                 'current_branch' => $currentBranch,
                 'has_changes' => $hasChanges,
-                'branches' => $this->getBranches($path)
+                'branches' => $branches
             ];
+
+            set_transient($cache_key, $status, 300); // Cache for 5 minutes
+            return $status;
         } catch (GitException $e) {
             return [
                 'valid' => false,
@@ -166,7 +197,7 @@ class GitManager
             $repo = $this->git->open($path);
 
             // Fetch latest branches and validate branch exists
-            $branches = $this->getBranches($path, true);
+            $branches = $this->getBranches($path, true, true); // Force refresh on switch attempt
             if (!in_array($branch, $branches)) {
                 return [
                     'success' => false,
@@ -217,6 +248,11 @@ class GitManager
                 }
             }
 
+            // Invalidate cache after successful switch
+            delete_transient('qa_assistant_current_branch_' . md5($path));
+            delete_transient('qa_assistant_branches_' . md5($path));
+            delete_transient('qa_assistant_repo_status_' . md5($path));
+
             return [
                 'success' => true,
                 'message' => "Successfully switched to branch '{$branch}'",
@@ -261,6 +297,10 @@ class GitManager
             $repo = $this->git->open($path);
             $repo->execute(['fetch', '--all', '--prune']);
 
+            // Invalidate cache after fetch
+            delete_transient('qa_assistant_branches_' . md5($path));
+            delete_transient('qa_assistant_repo_status_' . md5($path));
+
             return [
                 'success' => true,
                 'message' => 'Successfully fetched latest changes and branches'
@@ -294,9 +334,13 @@ class GitManager
             // Even if fetch fails, try to get local branches
         }
 
-        // Get updated branch list
-        $branches = $this->getBranches($path, false); // Don't fetch again
-        $currentBranch = $this->getCurrentBranch($path);
+        // Get updated branch list with force refresh
+        $branches = $this->getBranches($path, false, true);
+        $currentBranch = $this->getCurrentBranch($path, true);
+
+        // Invalidate cache after refresh
+        delete_transient('qa_assistant_branches_' . md5($path));
+        delete_transient('qa_assistant_repo_status_' . md5($path));
 
         return [
             'success' => true,
@@ -397,6 +441,11 @@ class GitManager
 
             // Pull from origin
             $output = $repo->execute(['pull', 'origin', $currentBranch]);
+
+            // Invalidate cache after successful pull
+            delete_transient('qa_assistant_current_branch_' . md5($path));
+            delete_transient('qa_assistant_branches_' . md5($path));
+            delete_transient('qa_assistant_repo_status_' . md5($path));
 
             return [
                 'success' => true,

@@ -9,6 +9,12 @@ PLUGIN_NAME="qa-assistant"
 BUILD_DIR="build"
 PLUGIN_VERSION=$(grep "Version:" qa-assistant.php | sed 's/.*Version: *//' | sed 's/ .*//')
 
+# Install production dependencies
+if [ -f composer.json ]; then
+    echo "📦 Installing Composer production dependencies..."
+    composer install --no-dev --optimize-autoloader
+fi
+
 echo "🚀 Building QA Assistant v${PLUGIN_VERSION} for production..."
 
 # Clean previous builds

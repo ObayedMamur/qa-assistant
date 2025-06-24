@@ -39,6 +39,7 @@ class Settings {
         // Reload the page after saving
         if (isset($_SERVER['REQUEST_URI'])) {
             wp_safe_redirect( esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) );
+            exit;
         }
     }
 }
