@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1544" height="500" viewBox="0 0 1544 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2271b1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#135e96;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00a32a;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#00a32a;stop-opacity:0.3" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1544" height="500" fill="url(#bgGradient)"/>
+  
+  <!-- Accent Shape -->
+  <path d="M 0 400 Q 400 300 800 350 T 1544 320 L 1544 500 L 0 500 Z" fill="url(#accentGradient)"/>
+  
+  <!-- Main Content Area -->
+  <g transform="translate(100, 50)">
+    
+    <!-- Plugin Icon -->
+    <g transform="translate(50, 100)">
+      <circle cx="0" cy="0" r="60" fill="#ffffff" opacity="0.9"/>
+      <g transform="scale(0.5)">
+        <!-- Git Branch Icon -->
+        <circle cx="-40" cy="-30" r="8" fill="#2271b1"/>
+        <circle cx="-40" cy="0" r="8" fill="#2271b1"/>
+        <circle cx="-40" cy="30" r="8" fill="#2271b1"/>
+        <line x1="-40" y1="-22" x2="-40" y2="22" stroke="#2271b1" stroke-width="3"/>
+        
+        <!-- Feature Branch -->
+        <circle cx="20" cy="-15" r="8" fill="#00a32a"/>
+        <circle cx="40" cy="15" r="8" fill="#00a32a"/>
+        <path d="M -32 -30 Q 0 -30 20 -15" stroke="#00a32a" stroke-width="3" fill="none"/>
+        <line x1="20" y1="-7" x2="40" y2="7" stroke="#00a32a" stroke-width="3"/>
+        
+        <!-- QA Badge -->
+        <rect x="45" y="-45" width="35" height="20" rx="10" fill="#d63638"/>
+        <text x="62.5" y="-30" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">QA</text>
+      </g>
+    </g>
+    
+    <!-- Title and Tagline -->
+    <g transform="translate(200, 80)">
+      <text x="0" y="0" fill="#ffffff" font-family="Arial, sans-serif" font-size="72" font-weight="bold">QA Assistant</text>
+      <text x="0" y="60" fill="#ffffff" font-family="Arial, sans-serif" font-size="28" opacity="0.9">GitHub Desktop-like Git Branch Management for WordPress</text>
+      
+      <!-- Feature List -->
+      <g transform="translate(0, 120)">
+        <text x="0" y="0" fill="#ffffff" font-family="Arial, sans-serif" font-size="20" font-weight="600">✓ One-click branch switching</text>
+        <text x="0" y="35" fill="#ffffff" font-family="Arial, sans-serif" font-size="20" font-weight="600">✓ Visual branch indicators</text>
+        <text x="0" y="70" fill="#ffffff" font-family="Arial, sans-serif" font-size="20" font-weight="600">✓ Uncommitted changes detection</text>
+        <text x="0" y="105" fill="#ffffff" font-family="Arial, sans-serif" font-size="20" font-weight="600">✓ Real-time notifications</text>
+      </g>
+    </g>
+    
+    <!-- Right Side Graphics -->
+    <g transform="translate(1000, 100)">
+      <!-- WordPress Admin Bar Mockup -->
+      <rect x="0" y="0" width="350" height="200" rx="10" fill="#ffffff" opacity="0.1" stroke="#ffffff" stroke-width="2"/>
+      <rect x="10" y="10" width="330" height="30" rx="5" fill="#23282d"/>
+      <text x="20" y="30" fill="#ffffff" font-family="Arial, sans-serif" font-size="14">🔄 Git Branches</text>
+      
+      <!-- Branch List -->
+      <rect x="20" y="50" width="310" height="25" rx="3" fill="#00a32a" opacity="0.8"/>
+      <text x="30" y="67" fill="#ffffff" font-family="Arial, sans-serif" font-size="12">✓ main (current)</text>
+      
+      <rect x="20" y="80" width="310" height="25" rx="3" fill="#ffffff" opacity="0.2"/>
+      <text x="30" y="97" fill="#ffffff" font-family="Arial, sans-serif" font-size="12">feature/new-functionality</text>
+      
+      <rect x="20" y="110" width="310" height="25" rx="3" fill="#ffffff" opacity="0.2"/>
+      <text x="30" y="127" fill="#ffffff" font-family="Arial, sans-serif" font-size="12">develop</text>
+      
+      <rect x="20" y="140" width="310" height="25" rx="3" fill="#ffffff" opacity="0.2"/>
+      <text x="30" y="157" fill="#ffffff" font-family="Arial, sans-serif" font-size="12">hotfix/urgent-fix</text>
+    </g>
+    
+  </g>
+  
+  <!-- Bottom Tagline -->
+  <text x="772" y="470" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="18" opacity="0.8">Perfect for Plugin Developers • QA Engineers • Development Teams</text>
+</svg>

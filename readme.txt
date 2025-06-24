@@ -1,18 +1,54 @@
-=== QA Assistant - A Tool for all the SQA Engineers to help them with Software Quality Assurance ===
+=== QA Assistant ===
 Contributors: obayedmamur, nhrrob
 Tags: qa assistant, quality assurance, help, sqa helper tool
 Requires at least: 5.0
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.4
 Stable tag: 1.0.0
 License: GPLv3
 License URI: https://opensource.org/licenses/GPL-3.0
 
-TBA Heading
+A comprehensive tool for Software Quality Assurance Engineers with advanced Git branch management capabilities.
 
 == Description ==
 
-TBA Description
+QA Assistant is a powerful WordPress plugin designed specifically for Software Quality Assurance Engineers. It provides advanced Git branch management directly from the WordPress admin bar, making it easier to test different plugin versions and manage development workflows.
+
+**Key Features:**
+
+🔄 **GitHub Desktop-like Branch Switching** - Switch between Git branches with a single click directly from the WordPress admin bar
+
+✅ **Current Branch Indicator** - Visual indicators show which branch you're currently on with color-coded status
+
+⚠️ **Uncommitted Changes Detection** - Get warnings before switching branches when you have unsaved changes
+
+🔒 **Force Switch Option** - Option to discard local changes and force switch to another branch
+
+📢 **Real-time Notifications** - Instant feedback on all Git operations with success/error messages
+
+🎨 **Enhanced User Interface** - Modern, intuitive interface with loading states and visual feedback
+
+🛡️ **Security Enhanced** - Proper nonce verification and input sanitization for all AJAX operations
+
+🔧 **Error Handling** - Comprehensive error handling with user-friendly error messages
+
+**Perfect for:**
+- Plugin developers testing different branches
+- QA engineers managing multiple plugin versions
+- Development teams working with Git workflows
+- Anyone who needs quick branch switching in WordPress admin
+
+== Services ==
+
+1. Git PHP: https://github.com/czproject/git-php
+Library for working with Git repositories in PHP.
+Library requires PHP 5.6 or later and `git` client (path to Git must be in system variable `PATH`).
+
+Git installers:
+
+* for Linux - https://git-scm.com/download/linux
+* for Windows - https://git-scm.com/download/win
+* for others - https://git-scm.com/downloads
 
 
 == Installation ==
@@ -31,10 +67,67 @@ Absolutely! You can use it to help you test WordPress Plugins/Themes.
 
 == Screenshots ==
 
-1. Overview of Features
+1. Git branch switching interface in WordPress admin bar - easily switch between branches with one click
+2. Plugin settings page showing selected plugins with Git status indicators
+3. Real-time notifications during branch switching operations with professional toast messages
+4. Safety warning when switching branches with uncommitted changes, including force switch option
 
 
 == Changelog ==
+
+= 1.0.2 - User Experience Improvements =
+
+**🎯 User-Requested Features:**
+- Added: Branch search functionality for easy branch filtering
+- Added: Selected plugins display with Git status indicators
+- Enhanced: Professional SVG loading spinner replacing squared icon
+- Enhanced: Modern toast notification system with progress bars and smooth animations
+
+**🎨 UI/UX Enhancements:**
+- Added: Smart search input for Git branches (appears when 3+ branches)
+- Added: Beautiful plugin cards showing current selections and Git status
+- Enhanced: Modern notification design with SVG icons and titles
+- Enhanced: Responsive grid layout for plugin cards
+- Enhanced: Smooth animations and transitions throughout
+
+**🔧 Technical Improvements:**
+- Enhanced: Better event handling and DOM manipulation
+- Enhanced: Improved CSS organization and maintainability
+- Enhanced: Modern JavaScript with better structure
+- Enhanced: Performance optimizations for animations
+
+= 1.0.1 - Enhanced Version =
+
+**🚀 Major Enhancements:**
+- Added: GitHub Desktop-like branch switching functionality
+- Added: One-click branch switching from admin bar
+- Added: Current branch visual indicators with checkmarks
+- Added: Uncommitted changes detection and warnings
+- Added: Force switch option for discarding local changes
+- Added: Real-time notification system with success/error messages
+- Added: Enhanced loading states and visual feedback
+- Added: Comprehensive error handling and user-friendly messages
+
+**🛡️ Security & Code Quality:**
+- Fixed: Added proper nonce verification for all AJAX requests
+- Fixed: Enhanced input validation and sanitization
+- Fixed: Improved error handling with try-catch blocks
+- Fixed: Typo in constructor comment
+- Added: New GitManager class for better code organization
+- Added: Comprehensive documentation and code comments
+
+**🎨 UI/UX Improvements:**
+- Enhanced: Modern notification system with animations
+- Enhanced: Color-coded branch status indicators
+- Enhanced: Improved admin bar styling and hover effects
+- Enhanced: Better responsive design for notifications
+- Enhanced: Loading animations and visual feedback
+
+**🔧 Technical Improvements:**
+- Refactored: Separated Git operations into dedicated GitManager class
+- Improved: Better separation of concerns and code organization
+- Enhanced: More robust Git operations with proper validation
+- Added: Comprehensive error logging for debugging
 
 = 1.0.0 - 26/12/2024 =
 

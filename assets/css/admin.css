@@ -1,0 +1,1033 @@
+/* Enhanced Git Branch Dropdown Styles */
+.qa_assistant_git-branch .ab-sub-wrapper {
+    width: auto;
+    height: 320px !important;
+    overflow-y: auto;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Custom scrollbar for dropdown */
+.qa_assistant_git-branch .ab-sub-wrapper::-webkit-scrollbar {
+    width: 6px;
+}
+
+.qa_assistant_git-branch .ab-sub-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.qa_assistant_git-branch .ab-sub-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.qa_assistant_git-branch .ab-sub-wrapper::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #94a3b8, #64748b);
+}
+
+/* Enhanced branch item styling */
+.qa_assistant_git-branch-list-items {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 2px 4px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+.qa_assistant_git-branch-list-items:hover > div {
+    cursor: pointer !important;
+    border: 1px solid #e5e7eb !important;
+    background: linear-gradient(135deg, #f9fafb, #f3f4f6) !important;
+    transform: translateX(2px) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+    border-left: 3px solid #3b82f6 !important;
+}
+
+.qa_assistant_git-branch-list-items:hover .ab-item {
+    color: #1f2937 !important;
+    font-weight: 600 !important;
+}
+
+/* Enhanced hover effect for regular branch items (excluding current branch) */
+.qa_assistant_git-branch-list-items:not(.current-branch):hover > div {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 3px solid #3b82f6 !important;
+    transform: translateX(2px) !important;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Enhanced current branch indicator */
+.qa_assistant_git-branch-list-items.current-branch > div {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important;
+    border: 1px solid #22c55e !important;
+    border-left: 4px solid #16a34a !important;
+    font-weight: 600 !important;
+    color: #15803d !important;
+    position: relative !important;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15) !important;
+}
+
+.qa_assistant_git-branch-list-items.current-branch .ab-item {
+    color: #15803d !important;
+    font-weight: 600 !important;
+}
+
+/* Enhanced hover effect for current branch */
+.qa_assistant_git-branch-list-items.current-branch:hover > div {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0) !important;
+    border: 1px solid #22c55e !important;
+    border-left: 4px solid #16a34a !important;
+    transform: translateX(2px) !important;
+    box-shadow: 0 3px 8px rgba(34, 197, 94, 0.2) !important;
+}
+
+.qa_assistant_git-branch-list-items.current-branch:hover .ab-item {
+    color: #14532d !important;
+}
+
+.qa_assistant_git-branch-list-items.current-branch > div::before {
+    content: "✓";
+    color: #16a34a;
+    font-weight: 700;
+    margin-right: 8px;
+    font-size: 14px;
+    filter: drop-shadow(0 1px 2px rgba(22, 163, 74, 0.3));
+}
+
+.qa_assistant_git-branch-list-items.current-branch > div::after {
+    content: "CURRENT";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #16a34a;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* Branch switching state */
+.qa_assistant_git-branch-list-items.switching-branch {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.qa_assistant_git-branch-list-items.switching-branch > div {
+    background-color: rgba(255, 193, 7, 0.2)!important;
+    border-left: 3px solid #ffc107!important;
+}
+
+.qa_assistant_git-branch-list-items.switching-branch .ab-item {
+    color: #92400e !important;
+    font-weight: 600 !important;
+}
+
+/* Enhanced loader with SVG spinner */
+.qa-branch-loader {
+    display: inline-block;
+    margin-left: 8px;
+    width: 16px;
+    height: 16px;
+}
+
+.qa-spinner {
+    width: 16px;
+    height: 16px;
+    animation: qa-spin 1s linear infinite;
+}
+
+.qa-spinner-path {
+    animation: qa-spinner-dash 1.5s ease-in-out infinite;
+}
+
+@keyframes qa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes qa-spinner-dash {
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+    }
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+    }
+}
+
+/* Enhanced keyboard-based branch search styling */
+.qa-branch-search-hint {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0) !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    margin: 4px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    cursor: default !important;
+    pointer-events: none !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.qa-branch-search-hint::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4) !important;
+    animation: qa-search-gradient 3s ease-in-out infinite !important;
+}
+
+.qa-branch-search-hint .ab-item {
+    padding: 12px 16px !important;
+    font-size: 13px !important;
+    color: #475569 !important;
+    font-weight: 500 !important;
+    font-style: normal !important;
+}
+
+/* Remove duplicate search icon - original text already has 🔍 */
+
+@keyframes qa-search-gradient {
+    0%, 100% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+}
+
+/* Enhanced branch items styling */
+.qa_assistant_git-branch .ab-sub-wrapper .qa_assistant_git-branch-list-items .ab-item {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    border: none !important;
+    margin: 0 !important;
+    transition: all 0.2s ease !important;
+    color: #374151 !important;
+    font-weight: 500 !important;
+}
+
+/* Consistent spacing for all branch dropdown items */
+.qa_assistant_git-branch .ab-sub-wrapper .ab-item {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    color: #374151 !important;
+    font-weight: 500 !important;
+}
+
+/* Remove any conflicting margins/padding */
+.qa_assistant_git-branch .ab-sub-wrapper li {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Ensure all branch items have good text color visibility */
+.qa_assistant_git-branch .ab-sub-wrapper .ab-item,
+.qa_assistant_git-branch .ab-sub-wrapper a {
+    color: #374151 !important;
+    text-decoration: none !important;
+}
+
+/* Override WordPress admin bar default colors */
+.qa_assistant_git-branch .ab-sub-wrapper .ab-item:hover,
+.qa_assistant_git-branch .ab-sub-wrapper a:hover {
+    color: #1e40af !important;
+}
+
+/* Ensure consistent width for dropdown */
+.qa_assistant_git-branch .ab-sub-wrapper {
+    min-width: 220px !important;
+    max-width: 300px !important;
+}
+
+/* Highlight matching characters during search */
+.qa-branch-highlight {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+    font-weight: bold !important;
+}
+
+/* Hidden branches during search */
+.qa-branch-hidden {
+    display: none !important;
+}
+
+/* Enhanced search active state */
+.qa-branch-search-active .qa-branch-search-hint {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15) !important;
+}
+
+.qa-branch-search-active .qa-branch-search-hint::before {
+    background: linear-gradient(90deg, #1d4ed8, #3b82f6, #06b6d4) !important;
+    animation: qa-search-active-gradient 2s ease-in-out infinite !important;
+}
+
+.qa-branch-search-active .qa-branch-search-hint .ab-item {
+    color: #1e40af !important;
+    font-weight: 600 !important;
+}
+
+/* Remove duplicate active search icon - will keep original 🔍 */
+
+@keyframes qa-search-active-gradient {
+    0%, 100% { transform: translateX(-100%) scaleX(1); }
+    50% { transform: translateX(100%) scaleX(1.2); }
+}
+
+/* Enhanced blinking cursor animation */
+.qa-search-cursor {
+    display: inline-block;
+    margin-left: 4px;
+    animation: qa-cursor-blink 1.2s infinite;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    font-size: 14px !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+@keyframes qa-cursor-blink {
+    0%, 45% {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+    46%, 100% {
+        opacity: 0;
+        transform: scaleY(0.8);
+    }
+}
+
+/* Enhanced cursor styling in different states */
+.qa-branch-search-hint .qa-search-cursor {
+    color: #64748b !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.qa-branch-search-active .qa-search-cursor {
+    color: #1e40af !important;
+    text-shadow: 0 1px 3px rgba(30, 64, 175, 0.3) !important;
+    animation: qa-cursor-active-blink 1s infinite !important;
+}
+
+@keyframes qa-cursor-active-blink {
+    0%, 40% {
+        opacity: 1;
+        transform: scaleY(1) scaleX(1);
+    }
+    41%, 100% {
+        opacity: 0;
+        transform: scaleY(0.9) scaleX(1.1);
+    }
+}
+
+/* Modern minimal pull button styling */
+.qa-pull-button {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 6px !important;
+    color: #374151 !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    margin: 4px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.qa-pull-button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
+    transition: left 0.5s ease !important;
+}
+
+.qa-pull-button .ab-item {
+    padding: 10px 14px !important;
+    color: #374151 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    position: relative !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.qa-pull-button:hover {
+    background: #f9fafb !important;
+    border-color: #10b981 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15) !important;
+}
+
+.qa-pull-button:hover .ab-item {
+    color: #10b981 !important;
+}
+
+.qa-pull-button:active {
+    transform: translateY(0px) !important;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Modern loading and disabled states */
+.qa-pull-button[disabled],
+.qa-pull-button.qa-pull-loading {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 0.7 !important;
+}
+
+.qa-pull-button.qa-pull-loading .ab-item {
+    color: #6b7280 !important;
+}
+
+/* Enhanced pull loader animation */
+.qa-pull-loader {
+    display: inline-block;
+    animation: qa-pull-spin 1.2s linear infinite;
+    margin-right: 6px;
+    font-size: 16px !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2)) !important;
+}
+
+@keyframes qa-pull-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes qa-loading-shimmer {
+    0% { left: -100%; }
+    50% { left: 0%; }
+    100% { left: 100%; }
+}
+
+/* Enhanced switching state */
+.qa_assistant_git-branch-list-items.switching-branch > div {
+    background-color: rgba(255, 193, 7, 0.3) !important;
+    border-left: 3px solid #ffc107 !important;
+    position: relative !important;
+}
+
+.qa_assistant_git-branch-list-items.switching-branch > div::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: qa-switching-shimmer 1.5s infinite;
+}
+
+@keyframes qa-switching-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Modern minimal refresh button styling */
+.qa-refresh-button {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 6px !important;
+    color: #374151 !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    margin: 4px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.qa-refresh-button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
+    transition: left 0.5s ease !important;
+}
+
+.qa-refresh-button .ab-item {
+    padding: 10px 14px !important;
+    color: #374151 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    position: relative !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.qa-refresh-button:hover {
+    background: #f9fafb !important;
+    border-color: #3b82f6 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15) !important;
+}
+
+.qa-refresh-button:hover .ab-item {
+    color: #3b82f6 !important;
+}
+
+.qa-refresh-button:active {
+    transform: translateY(0px) !important;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Modern refresh loading and disabled states */
+.qa-refresh-button[disabled],
+.qa-refresh-button.qa-refresh-loading {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 0.7 !important;
+}
+
+.qa-refresh-button.qa-refresh-loading .ab-item {
+    color: #6b7280 !important;
+}
+
+/* Enhanced refresh loader animation */
+.qa-refresh-loader {
+    display: inline-block;
+    animation: qa-refresh-spin 1.2s linear infinite;
+    margin-right: 6px;
+    font-size: 16px !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2)) !important;
+}
+
+@keyframes qa-refresh-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Modern sleek icon styling */
+.qa-icon {
+    width: 16px !important;
+    height: 16px !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    margin-left: 8px !important;
+    transition: all 0.2s ease !important;
+    flex-shrink: 0 !important;
+}
+
+.qa-pull-icon {
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+}
+
+.qa-refresh-icon {
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+}
+
+/* Icon hover animations */
+.qa-pull-button:hover .qa-pull-icon {
+    transform: translateY(1px) !important;
+    stroke: #10b981 !important;
+}
+
+.qa-refresh-button:hover .qa-refresh-icon {
+    transform: rotate(90deg) !important;
+    stroke: #3b82f6 !important;
+}
+
+/* Loading state icon animations */
+.qa-pull-button.qa-pull-loading .qa-pull-icon {
+    animation: qa-pull-bounce 1s ease-in-out infinite !important;
+}
+
+.qa-refresh-button.qa-refresh-loading .qa-refresh-icon {
+    animation: qa-refresh-spin 1s linear infinite !important;
+}
+
+@keyframes qa-pull-bounce {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-2px); }
+}
+
+/* Settings Page Styles */
+.qa-assistant-content {
+    max-width: 800px;
+    margin: 2rem 0;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.qa-assistant-content h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #23282d;
+    margin-bottom: 1.5rem;
+    line-height: 1.3;
+}
+
+.qa-assistant-tabs {
+    border-bottom: 2px solid #e2e4e7;
+    margin-bottom: 2rem;
+}
+
+.qa-assistant-tab-link {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #646970;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.3s ease;
+}
+
+.qa-assistant-tab-link:hover,
+.qa-assistant-tab-link.active {
+    color: #2271b1;
+    border-bottom-color: #2271b1;
+}
+
+.qa-assistant-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.qa-assistant-form h2 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #1d2327;
+    margin: 0;
+}
+
+#qa-assistant__description {
+    font-size: 0.9rem;
+    color: #646970;
+    margin: 0.5rem 0;
+}
+
+/* Feature info section */
+.qa-assistant-feature-info {
+    background: #f8f9fa;
+    border: 1px solid #e2e4e7;
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.qa-assistant-feature-info h3 {
+    margin: 0 0 1rem 0;
+    color: #1d2327;
+    font-size: 1.1rem;
+}
+
+.qa-assistant-feature-info ul {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+}
+
+.qa-assistant-feature-info li {
+    margin: 0.75rem 0;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e2e4e7;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.qa-assistant-feature-info li:last-child {
+    border-bottom: none;
+}
+
+/* Selected plugins display */
+.qa-assistant-selected-plugins {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #fff;
+    border: 1px solid #e2e4e7;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.qa-assistant-selected-plugins h3 {
+    margin: 0 0 1.5rem 0;
+    color: #1d2327;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.qa-selected-plugins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.qa-plugin-card {
+    background: #f8f9fa;
+    border: 1px solid #e2e4e7;
+    border-radius: 6px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.qa-plugin-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.qa-plugin-card.has-git {
+    border-left: 4px solid #2ea043;
+}
+
+.qa-plugin-card.no-git {
+    border-left: 4px solid #f85149;
+}
+
+.qa-plugin-header h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.qa-plugin-dir {
+    font-size: 0.85rem;
+    color: #646970;
+    font-family: monospace;
+    background: #e2e4e7;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.qa-plugin-status {
+    margin-top: 0.75rem;
+}
+
+.qa-git-status {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.qa-git-status .dashicons {
+    margin-right: 0.5rem;
+    font-size: 16px;
+}
+
+.qa-git-status.has-git {
+    color: #2ea043;
+}
+
+.qa-git-status.no-git {
+    color: #f85149;
+}
+
+/* Select2 Enhancements */
+.select2-container--default .select2-selection--multiple {
+    border-color: #8c8f94;
+    border-radius: 4px;
+    min-height: 36px;
+    transition: border-color 0.3s ease;
+    width: 100% !important;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #f0f0f1;
+    border: 1px solid #c3c4c7;
+    border-radius: 3px;
+    padding: 4px 8px;
+    margin: 4px;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice:hover {
+    background-color: #e5e5e5;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #646970;
+    margin-right: 6px;
+    transition: color 0.2s ease;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: #d63638;
+}
+
+.select2-dropdown {
+    border-color: #8c8f94;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    animation: select2DropdownFade 0.2s ease-in-out;
+    transform-origin: top;
+}
+
+@keyframes select2DropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-search--dropdown {
+    padding: 8px;
+    transition: all 0.2s ease;
+}
+
+.select2-search--dropdown .select2-search__field {
+    padding: 6px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.select2-search--dropdown .select2-search__field:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: none;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #2271b1;
+}
+
+/* Save Button and Spinner */
+.qa-assistant-form .button-primary {
+    align-self: flex-start;
+    margin-top: 1rem;
+    padding: 0.5rem 1.5rem;
+    height: auto;
+    transition: all 0.2s ease;
+}
+
+.qa-assistant-form .button-primary:hover {
+    background-color: #135e96;
+}
+
+#qa-assistant__spinner {
+    margin-left: 1rem;
+    margin-top: 1.25rem;
+}
+
+/* Modern Enhanced Notification System */
+.qa-notification {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 999999;
+    min-width: 320px;
+    max-width: 420px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.qa-notification-show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.qa-notification-hide {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.qa-notification-content {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 20px;
+    gap: 12px;
+}
+
+.qa-notification-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.qa-notification-svg {
+    width: 16px;
+    height: 16px;
+}
+
+.qa-notification-success .qa-notification-icon {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.qa-notification-error .qa-notification-icon {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.qa-notification-info .qa-notification-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.qa-notification-warning .qa-notification-icon {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.qa-notification-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.qa-notification-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 2px;
+    line-height: 1.4;
+}
+
+.qa-notification-message {
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.qa-notification-close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    color: #9ca3af;
+    transition: all 0.2s ease;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qa-notification-close:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.qa-notification-close svg {
+    width: 14px;
+    height: 14px;
+}
+
+.qa-notification-progress {
+    height: 3px;
+    background: #f3f4f6;
+    position: relative;
+    overflow: hidden;
+}
+
+.qa-notification-progress::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    transition: width 5s linear;
+}
+
+.qa-notification-progress-animate::before {
+    width: 100%;
+}
+
+.qa-notification-success .qa-notification-progress::before {
+    background: #16a34a;
+}
+
+.qa-notification-error .qa-notification-progress::before {
+    background: #dc2626;
+}
+
+.qa-notification-info .qa-notification-progress::before {
+    background: #2563eb;
+}
+
+.qa-notification-warning .qa-notification-progress::before {
+    background: #d97706;
+}
+
+/* Git Branch Status Icons */
+.qa-git-status-icon {
+    margin-right: 4px;
+    font-size: 12px;
+}
+
+.qa-git-status-clean::before {
+    content: "✓";
+    color: #2ea043;
+}
+
+.qa-git-status-dirty::before {
+    content: "●";
+    color: #fb8500;
+}
+
+.qa-git-status-ahead::before {
+    content: "↑";
+    color: #0969da;
+}
+
+.qa-git-status-behind::before {
+    content: "↓";
+    color: #cf222e;
+}
