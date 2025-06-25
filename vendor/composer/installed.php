@@ -3,7 +3,7 @@
         'name' => 'vendor-name/qa-assistant',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '4151670c2a41b361272d44a9a6b5ebfbf111ee63',
+        'reference' => 'da1f025c327cf5a7c8a3ee480d54411f515ec306',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -24,7 +24,7 @@
         'vendor-name/qa-assistant' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '4151670c2a41b361272d44a9a6b5ebfbf111ee63',
+            'reference' => 'da1f025c327cf5a7c8a3ee480d54411f515ec306',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
