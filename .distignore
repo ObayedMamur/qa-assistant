@@ -38,7 +38,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Composer development dependencies
-composer.json
+
 composer.lock
 
 # Environment files
