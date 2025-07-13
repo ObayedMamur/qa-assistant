@@ -75,7 +75,69 @@ class Menu {
                 $selected_plugins = array_map('sanitize_text_field', wp_unslash($_POST['qa_assistant_plugins']));
             }
 
-            $settings->save_settings( $selected_plugins);
+            // Validate that selected plugins are Git repositories
+            $valid_plugins = [];
+            $invalid_plugins = [];
+
+            foreach ($selected_plugins as $plugin_dir) {
+                $plugin_path = trailingslashit(WP_PLUGIN_DIR) . $plugin_dir;
+                if (is_dir($plugin_path . '/.git')) {
+                    $valid_plugins[] = $plugin_dir;
+                } else {
+                    // Get plugin name for better user feedback
+                    $plugin_name = $plugin_dir;
+                    if (isset($available_plugins[$plugin_dir])) {
+                        $plugin_name = $available_plugins[$plugin_dir]['Name'];
+                    }
+                    $invalid_plugins[] = $plugin_name;
+                }
+            }
+
+            // Save only valid Git repositories
+            $settings->save_settings($valid_plugins);
+
+            // Show user feedback
+            if (!empty($invalid_plugins)) {
+                $message = sprintf(
+                    /* translators: %s: comma-separated list of plugin names */
+                    _n(
+                        'Warning: The following plugin is not a Git repository and was not saved: %s',
+                        'Warning: The following plugins are not Git repositories and were not saved: %s',
+                        count($invalid_plugins),
+                        'qa-assistant'
+                    ),
+                    implode(', ', $invalid_plugins)
+                );
+
+                // Store the message in a transient to display after redirect
+                set_transient('qa_assistant_admin_notice', [
+                    'type' => 'warning',
+                    'message' => $message
+                ], 30);
+            }
+
+            if (!empty($valid_plugins)) {
+                $success_message = sprintf(
+                    /* translators: %d: number of plugins */
+                    _n(
+                        'Settings saved! %d Git repository plugin selected.',
+                        'Settings saved! %d Git repository plugins selected.',
+                        count($valid_plugins),
+                        'qa-assistant'
+                    ),
+                    count($valid_plugins)
+                );
+
+                set_transient('qa_assistant_admin_notice', [
+                    'type' => 'success',
+                    'message' => $success_message
+                ], 30);
+            } elseif (empty($invalid_plugins)) {
+                set_transient('qa_assistant_admin_notice', [
+                    'type' => 'info',
+                    'message' => __('No plugins selected. Git branch display has been disabled.', 'qa-assistant')
+                ], 30);
+            }
         }
 
 		require QA_ASSISTANT_PLUGIN_DIR_PATH . 'templates/settings-page.php';

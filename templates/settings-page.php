@@ -7,7 +7,21 @@ if (!defined('ABSPATH')) {
 <div class="wrap">
 
     <h1><?php esc_html_e('QA Assistant', 'qa-assistant'); ?></h1>
-    
+
+    <?php
+    // Display admin notices
+    $admin_notice = get_transient('qa_assistant_admin_notice');
+    if ($admin_notice) {
+        delete_transient('qa_assistant_admin_notice');
+        $notice_class = 'notice notice-' . esc_attr($admin_notice['type']) . ' is-dismissible';
+        ?>
+        <div class="<?php echo esc_attr($notice_class); ?>">
+            <p><?php echo esc_html($admin_notice['message']); ?></p>
+        </div>
+        <?php
+    }
+    ?>
+
     <div class="qa-assistant-content">
 
         <h1>Settings</h1>
@@ -106,7 +120,7 @@ if (!defined('ABSPATH')) {
                                         }
                                     }
                                     ?>
-                                    <div class="qa-plugin-card <?php echo esc_attr($status_class); ?>">
+                                    <div class="qa-plugin-card <?php echo esc_attr($status_class); ?>" data-plugin-dir="<?php echo esc_attr($plugin_dir); ?>">
                                         <div class="qa-plugin-header">
                                             <h4><?php echo esc_html($plugin_name); ?></h4>
                                             <span class="qa-plugin-dir"><?php echo esc_html($plugin_dir); ?></span>

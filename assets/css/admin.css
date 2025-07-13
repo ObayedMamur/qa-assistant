@@ -1031,3 +1031,65 @@
     content: "↓";
     color: #cf222e;
 }
+
+/* Git Repository Validation Styles */
+.qa-plugin-card.no-git {
+    border-left: 4px solid #f59e0b;
+    background-color: #fef3c7;
+}
+
+.qa-plugin-card.has-git {
+    border-left: 4px solid #10b981;
+    background-color: #d1fae5;
+}
+
+.qa-git-status.no-git {
+    color: #d97706;
+    font-weight: 600;
+}
+
+.qa-git-status.has-git {
+    color: #059669;
+    font-weight: 600;
+}
+
+.qa-git-status .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    vertical-align: text-top;
+}
+
+/* Enhanced plugin card styling */
+.qa-plugin-card {
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.qa-plugin-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.qa-plugin-header h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.qa-plugin-dir {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: monospace;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.qa-plugin-status {
+    margin-top: 8px;
+}
