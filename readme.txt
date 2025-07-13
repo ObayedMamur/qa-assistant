@@ -65,6 +65,21 @@ Note : This plugin works with any wordpress sites. Make sure you have updated Wo
 
 Absolutely! You can use it to help you test WordPress Plugins/Themes.
 
+== External services ==
+
+This plugin does NOT connect to any external services or APIs. All Git operations are performed locally on your server.
+
+**Local Git Repository Access:**
+- The plugin reads local Git repository information from `.git/HEAD` files within your WordPress plugin directories
+- This is used to display current branch information and enable branch switching functionality
+- No data is transmitted to external servers
+- All Git operations (branch switching, pulling changes) are performed locally using your server's Git installation
+
+**Data Handling:**
+- Only local Git repository metadata is accessed (branch names, commit information)
+- No personal data or sensitive information is transmitted externally
+- All operations remain within your WordPress installation and local Git repositories
+
 == Screenshots ==
 
 1. Git branch switching interface in WordPress admin bar - easily switch between branches with one click

@@ -2,6 +2,11 @@
 
 namespace QaAssistant\Frontend;
 
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+
 /**
  * Shortcode handler class
  */

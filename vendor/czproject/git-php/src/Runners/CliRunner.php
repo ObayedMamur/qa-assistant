@@ -1,5 +1,7 @@
 <?php
 
+	declare(strict_types=1);
+
 	namespace CzProject\GitPhp\Runners;
 
 	use CzProject\GitPhp\CommandProcessor;
@@ -30,7 +32,7 @@
 		/**
 		 * @return RunnerResult
 		 */
-		public function run($cwd, array $args, array $env = NULL)
+		public function run($cwd, array $args, ?array $env = NULL)
 		{
 			if (!is_dir($cwd)) {
 				throw new GitException("Directory '$cwd' not found");
@@ -50,6 +52,15 @@
 
 			if (!$process) {
 				throw new GitException("Executing of command '$command' failed (directory $cwd).");
+			}
+
+			if (!(is_array($pipes)
+				&& isset($pipes[0], $pipes[1], $pipes[2])
+				&& is_resource($pipes[0])
+				&& is_resource($pipes[1])
+				&& is_resource($pipes[2])
+			)) {
+				throw new GitException("Invalid pipes for command '$command' failed (directory $cwd).");
 			}
 
 			// Reset output and error

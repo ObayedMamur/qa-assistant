@@ -1,5 +1,7 @@
 <?php
 
+	declare(strict_types=1);
+
 	namespace CzProject\GitPhp;
 
 
@@ -39,7 +41,7 @@
 		 * @param  array<string, scalar>|NULL $env
 		 * @return string
 		 */
-		public function process($app, array $args, array $env = NULL)
+		public function process($app, array $args, ?array $env = NULL)
 		{
 			$cmd = [];
 

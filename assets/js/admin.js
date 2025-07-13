@@ -121,9 +121,17 @@
 
             let elementId = $(this).attr('id');
             let pluginDir = getPluginSlug(elementId);
-            let branchName = elementId.split('_').pop();
+            // Get branch name from the displayed text (most reliable method)
+            let branchName = $(this).find('.ab-item').text().trim();
             let $this = $(this);
             let currentBranchElement = $this.closest('.qa_assistant_git-branch').find('.ab-item');
+
+            // Validate branch name
+            if (!branchName) {
+                console.error('Branch name not found for element:', elementId);
+                showNotification('Error: Branch name not found', 'error');
+                return;
+            }
 
             // Don't switch if it's already the current branch
             if ($this.hasClass('current-branch')) {

@@ -2,6 +2,11 @@
 
 namespace QaAssistant;
 
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+
 use CzProject\GitPhp\Git;
 use CzProject\GitPhp\GitException;
 

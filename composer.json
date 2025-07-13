@@ -9,9 +9,9 @@
             "email": "admin@example.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "require": {
-        "czproject/git-php": "dev-master"
+        "czproject/git-php": "^4.0"
     },
     "autoload": {
         "psr-4": {

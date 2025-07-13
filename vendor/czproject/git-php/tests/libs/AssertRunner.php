@@ -1,5 +1,7 @@
 <?php
 
+	declare(strict_types=1);
+
 	namespace CzProject\GitPhp\Tests;
 
 	use CzProject\GitPhp\CommandProcessor;
@@ -59,7 +61,7 @@
 		/**
 		 * @return RunnerResult
 		 */
-		public function run($cwd, array $args, array $env = NULL)
+		public function run($cwd, array $args, ?array $env = NULL)
 		{
 			if (empty($this->asserts)) {
 				throw new \CzProject\GitPhp\InvalidStateException('Missing asserts, use $runner->assert().');

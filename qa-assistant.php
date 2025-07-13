@@ -13,6 +13,13 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
+// Define plugin constants
+define('QA_ASSISTANT_VERSION', '1.0.0');
+define('QA_ASSISTANT_PLUGIN_FILE', __FILE__);
+define('QA_ASSISTANT_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('QA_ASSISTANT_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('QA_ASSISTANT_PLUGIN_BASENAME', plugin_basename(__FILE__));
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 /**
@@ -74,7 +81,7 @@ final class Qa_Assistant
      */
     public function define_constants()
     {
-        define('QA_ASSISTANT_VERSION', self::version);
+        // QA_ASSISTANT_VERSION is already defined at the top of the file
         define('QA_ASSISTANT_FILE', __FILE__);
         define('QA_ASSISTANT_PATH', __DIR__);
         define('QA_ASSISTANT_PLUGIN_DIR_PATH', plugin_dir_path(QA_ASSISTANT_FILE));
@@ -141,7 +148,7 @@ final class Qa_Assistant
         $plugin_dirs = array_combine($plugin_dirs, $plugin_dirs);
 
         foreach ($plugin_dirs as $plugin_dir => $settings) {
-            $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+            $path = trailingslashit(WP_PLUGIN_DIR) . $plugin_dir;
             $currentBranch = $this->get_git_branch($path);
             if (!$currentBranch) {
                 continue;

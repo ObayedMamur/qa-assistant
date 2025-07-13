@@ -2,6 +2,11 @@
 
 namespace QaAssistant\Admin;
 
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+
 /**
  * The Menu handler class
  */
@@ -36,6 +41,11 @@ class Menu {
      * @return void
      */
     public function settings_page() {
+        // Check user capabilities
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.', 'qa-assistant'));
+        }
+
         $settings = new Settings();
 
         wp_enqueue_style( 'qa-assistant-select2-style' );
@@ -46,7 +56,12 @@ class Menu {
         wp_enqueue_script( 'qa-assistant-jquery-slim-script' );
 
         $available_plugins = $settings->get_available_plugins();
-		$selected_plugin_basename = filter_input( INPUT_GET, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+        // Validate and sanitize GET parameter with nonce check for plugin parameter
+        $selected_plugin_basename = '';
+        if (isset($_GET['plugin']) && isset($_GET['_wpnonce']) && wp_verify_nonce($_GET['_wpnonce'], 'qa_assistant_plugin_select')) {
+            $selected_plugin_basename = sanitize_text_field($_GET['plugin']);
+        }
 
 		// Get currently selected plugins for the dropdown
 		$current_settings = maybe_unserialize(get_option('qa_assistant_settings', array()));
