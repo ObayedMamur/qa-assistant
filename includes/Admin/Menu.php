@@ -43,7 +43,7 @@ class Menu {
     public function settings_page() {
         // Check user capabilities
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'qa-assistant'));
+            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'qa-assistant'));
         }
 
         $settings = new Settings();
@@ -59,8 +59,8 @@ class Menu {
 
         // Validate and sanitize GET parameter with nonce check for plugin parameter
         $selected_plugin_basename = '';
-        if (isset($_GET['plugin']) && isset($_GET['_wpnonce']) && wp_verify_nonce($_GET['_wpnonce'], 'qa_assistant_plugin_select')) {
-            $selected_plugin_basename = sanitize_text_field($_GET['plugin']);
+        if (isset($_GET['plugin']) && isset($_GET['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'qa_assistant_plugin_select')) {
+            $selected_plugin_basename = sanitize_text_field(wp_unslash($_GET['plugin']));
         }
 
 		// Get currently selected plugins for the dropdown
