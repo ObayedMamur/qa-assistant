@@ -76,10 +76,10 @@ jobs:
         
     - name: WordPress Plugin Deploy
       id: deploy
+      if: ${{ github.event_name == 'release' }}
       uses: 10up/action-wordpress-plugin-deploy@stable
       with:
         generate-zip: true
-        assets-dir: .wordpress-org
       env:
         SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
         SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
