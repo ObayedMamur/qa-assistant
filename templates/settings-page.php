@@ -96,7 +96,7 @@ if (!defined('ABSPATH')) {
                                     }
 
                                     // Check Git status
-                                    $plugin_path = trailingslashit(WP_PLUGIN_DIR) . $plugin_dir;
+                                    $plugin_path = qa_assistant_get_plugin_path($plugin_dir);
                                     $is_git_repo = is_dir($plugin_path . '/.git');
                                     $current_branch = '';
                                     $git_status = 'Not a Git repository';

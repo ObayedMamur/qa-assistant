@@ -20,6 +20,18 @@ define('QA_ASSISTANT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('QA_ASSISTANT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('QA_ASSISTANT_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
+/**
+ * Get the absolute path to a plugin directory using WordPress best practices
+ *
+ * @param string $plugin_dir The plugin directory name
+ * @return string The absolute path to the plugin directory
+ */
+function qa_assistant_get_plugin_path($plugin_dir) {
+    // Use WordPress function to get plugins directory
+    $plugins_dir = dirname(plugin_dir_path(__FILE__));
+    return trailingslashit($plugins_dir) . $plugin_dir;
+}
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 /**
@@ -148,7 +160,7 @@ final class Qa_Assistant
         $plugin_dirs = array_combine($plugin_dirs, $plugin_dirs);
 
         foreach ($plugin_dirs as $plugin_dir => $settings) {
-            $path = trailingslashit(WP_PLUGIN_DIR) . $plugin_dir;
+            $path = qa_assistant_get_plugin_path($plugin_dir);
             $currentBranch = $this->get_git_branch($path);
             if (!$currentBranch) {
                 continue;
