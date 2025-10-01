@@ -2,6 +2,11 @@
 
 namespace QaAssistant;
 
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+
 use CzProject\GitPhp\Git;
 use CzProject\GitPhp\GitException;
 
@@ -65,7 +70,7 @@ class Ajax
             ]);
         }
 
-        $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+        $path = qa_assistant_get_plugin_path($plugin_dir);
 
         // Validate plugin directory exists
         if (!is_dir($path)) {
@@ -111,7 +116,7 @@ class Ajax
             ]);
         }
 
-        $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+        $path = qa_assistant_get_plugin_path($plugin_dir);
         $status = $this->gitManager->getRepositoryStatus($path);
 
         if ($status['valid']) {
@@ -143,7 +148,7 @@ class Ajax
             ]);
         }
 
-        $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+        $path = qa_assistant_get_plugin_path($plugin_dir);
 
         // Validate plugin directory exists
         if (!is_dir($path)) {
@@ -191,7 +196,7 @@ class Ajax
             ]);
         }
 
-        $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+        $path = qa_assistant_get_plugin_path($plugin_dir);
         $comparison = $this->gitManager->getBranchComparison($path, $branch);
 
         if (isset($comparison['error'])) {
@@ -223,7 +228,7 @@ class Ajax
             ]);
         }
 
-        $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+        $path = qa_assistant_get_plugin_path($plugin_dir);
 
         // Validate plugin directory exists
         if (!is_dir($path)) {
@@ -272,7 +277,7 @@ class Ajax
             ]);
         }
 
-        $path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+        $path = qa_assistant_get_plugin_path($plugin_dir);
         $result = $this->gitManager->switchBranch($path, $branch);
 
         if ($result['success']) {

@@ -1,5 +1,7 @@
 <?php
 
+	declare(strict_types=1);
+
 	namespace CzProject\GitPhp\Runners;
 
 	use CzProject\GitPhp\CommandProcessor;
@@ -49,7 +51,7 @@
 		/**
 		 * @return RunnerResult
 		 */
-		public function run($cwd, array $args, array $env = NULL)
+		public function run($cwd, array $args, ?array $env = NULL)
 		{
 			$cmd = $this->commandProcessor->process('git', $args, $env);
 

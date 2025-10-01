@@ -3,6 +3,9 @@
     $(document).ready(function() {
         $('.qa-assistant-select2').select2();
 
+        // Add Git repository validation for plugin selection
+        initializeGitValidation();
+
         // Keyboard-based branch search functionality
         let searchBuffer = '';
 
@@ -121,9 +124,17 @@
 
             let elementId = $(this).attr('id');
             let pluginDir = getPluginSlug(elementId);
-            let branchName = elementId.split('_').pop();
+            // Get branch name from the displayed text (most reliable method)
+            let branchName = $(this).find('.ab-item').text().trim();
             let $this = $(this);
             let currentBranchElement = $this.closest('.qa_assistant_git-branch').find('.ab-item');
+
+            // Validate branch name
+            if (!branchName) {
+                console.error('Branch name not found for element:', elementId);
+                showNotification('Error: Branch name not found', 'error');
+                return;
+            }
 
             // Don't switch if it's already the current branch
             if ($this.hasClass('current-branch')) {
@@ -460,5 +471,55 @@
         }
 
     });
+
+    /**
+     * Initialize Git repository validation for plugin selection
+     */
+    function initializeGitValidation() {
+        // Add change event listener to plugin selection dropdown
+        $('.qa-assistant-select2').on('change', function() {
+            validateSelectedPlugins();
+        });
+
+        // Add form submission validation
+        $('.qa-assistant-form').on('submit', function(e) {
+            if (!validateSelectedPlugins()) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Validate selected plugins are Git repositories
+     */
+    function validateSelectedPlugins() {
+        let selectedValues = $('.qa-assistant-select2').val() || [];
+        let nonGitPlugins = [];
+
+        // Check each selected plugin
+        selectedValues.forEach(function(pluginDir) {
+            let pluginCard = $(`.qa-plugin-card[data-plugin-dir="${pluginDir}"]`);
+            if (pluginCard.length > 0) {
+                let gitStatus = pluginCard.find('.qa-git-status');
+                if (gitStatus.hasClass('no-git')) {
+                    let pluginName = pluginCard.find('h4').text();
+                    nonGitPlugins.push(pluginName);
+                }
+            }
+        });
+
+        // Show warning if non-Git repositories are selected
+        if (nonGitPlugins.length > 0) {
+            let message = nonGitPlugins.length === 1
+                ? `Warning: "${nonGitPlugins[0]}" is not a Git repository. Please select plugins that are Git repositories to enable branch switching functionality.`
+                : `Warning: The following plugins are not Git repositories: ${nonGitPlugins.join(', ')}. Please select plugins that are Git repositories to enable branch switching functionality.`;
+
+            showToast('warning', 'Git Repository Required', message);
+            return false;
+        }
+
+        return true;
+    }
 
 })(jQuery);

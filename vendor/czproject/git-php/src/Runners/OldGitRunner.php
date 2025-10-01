@@ -1,5 +1,7 @@
 <?php
 
+	declare(strict_types=1);
+
 	namespace CzProject\GitPhp\Runners;
 
 	use CzProject\GitPhp\IRunner;
@@ -11,13 +13,13 @@
 		private $runner;
 
 
-		public function __construct(IRunner $runner = NULL)
+		public function __construct(?IRunner $runner = NULL)
 		{
 			$this->runner = $runner !== NULL ? $runner : new CliRunner;
 		}
 
 
-		public function run($cwd, array $args, array $env = NULL)
+		public function run($cwd, array $args, ?array $env = NULL)
 		{
 			if (($key = array_search('--end-of-options', $args)) !== FALSE) {
 				unset($args[$key]);

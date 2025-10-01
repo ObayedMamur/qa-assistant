@@ -1,5 +1,7 @@
 <?php
 
+	declare(strict_types=1);
+
 	namespace CzProject\GitPhp;
 
 
@@ -11,7 +13,7 @@
 		 * @param  array<string, scalar>|NULL $env
 		 * @return RunnerResult
 		 */
-		function run($cwd, array $args, array $env = NULL);
+		function run($cwd, array $args, ?array $env = NULL);
 
 
 		/**

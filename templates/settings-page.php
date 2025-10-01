@@ -1,7 +1,27 @@
+<?php
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+?>
 <div class="wrap">
 
     <h1><?php esc_html_e('QA Assistant', 'qa-assistant'); ?></h1>
-    
+
+    <?php
+    // Display admin notices
+    $admin_notice = get_transient('qa_assistant_admin_notice');
+    if ($admin_notice) {
+        delete_transient('qa_assistant_admin_notice');
+        $notice_class = 'notice notice-' . esc_attr($admin_notice['type']) . ' is-dismissible';
+        ?>
+        <div class="<?php echo esc_attr($notice_class); ?>">
+            <p><?php echo esc_html($admin_notice['message']); ?></p>
+        </div>
+        <?php
+    }
+    ?>
+
     <div class="qa-assistant-content">
 
         <h1>Settings</h1>
@@ -76,7 +96,7 @@
                                     }
 
                                     // Check Git status
-                                    $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+                                    $plugin_path = qa_assistant_get_plugin_path($plugin_dir);
                                     $is_git_repo = is_dir($plugin_path . '/.git');
                                     $current_branch = '';
                                     $git_status = 'Not a Git repository';
@@ -85,8 +105,14 @@
                                     if ($is_git_repo) {
                                         $git_head_file = $plugin_path . '/.git/HEAD';
                                         if (file_exists($git_head_file)) {
-                                            $contents = file_get_contents($git_head_file);
-                                            if (strpos($contents, 'ref:') === 0) {
+                                            // Use WordPress filesystem API instead of file_get_contents
+                                            global $wp_filesystem;
+                                            if (empty($wp_filesystem)) {
+                                                require_once ABSPATH . '/wp-admin/includes/file.php';
+                                                WP_Filesystem();
+                                            }
+                                            $contents = $wp_filesystem->get_contents($git_head_file);
+                                            if ($contents && strpos($contents, 'ref:') === 0) {
                                                 $current_branch = trim(str_replace('ref: refs/heads/', '', $contents));
                                                 $git_status = 'Branch: ' . $current_branch;
                                                 $status_class = 'has-git';
@@ -94,7 +120,7 @@
                                         }
                                     }
                                     ?>
-                                    <div class="qa-plugin-card <?php echo esc_attr($status_class); ?>">
+                                    <div class="qa-plugin-card <?php echo esc_attr($status_class); ?>" data-plugin-dir="<?php echo esc_attr($plugin_dir); ?>">
                                         <div class="qa-plugin-header">
                                             <h4><?php echo esc_html($plugin_name); ?></h4>
                                             <span class="qa-plugin-dir"><?php echo esc_html($plugin_dir); ?></span>
