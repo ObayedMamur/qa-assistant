@@ -466,4 +466,47 @@ class GitManager
             ];
         }
     }
+
+    /**
+     * Clone a repository
+     *
+     * @param string $url Repository URL
+     * @param string $targetPath Target path to clone into
+     * @return array Operation result
+     */
+    public function cloneRepository($url, $targetPath)
+    {
+        // Basic validation
+        if (empty($url) || empty($targetPath)) {
+            return [
+                'success' => false,
+                'error' => 'Repository URL and target path are required'
+            ];
+        }
+
+        // Check if target directory already exists
+        if (file_exists($targetPath)) {
+            return [
+                'success' => false,
+                'error' => 'Target directory already exists. Please remove or rename it first.',
+                'target_exists' => true
+            ];
+        }
+
+        try {
+            // Clone the repository
+            $this->git->cloneRepository($url, $targetPath);
+
+            return [
+                'success' => true,
+                'message' => 'Repository successfully cloned',
+                'path' => $targetPath
+            ];
+        } catch (GitException $e) {
+            return [
+                'success' => false,
+                'error' => 'Clone failed: ' . $e->getMessage()
+            ];
+        }
+    }
 }
