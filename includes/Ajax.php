@@ -41,6 +41,10 @@ class Ajax
         // Branch refresh
         add_action('wp_ajax_qa_assistant_refresh_branches', [$this, 'refresh_branches']);
 
+        // Stash and commit
+        add_action('wp_ajax_qa_assistant_stash_changes', [$this, 'stash_changes']);
+        add_action('wp_ajax_qa_assistant_commit_changes', [$this, 'commit_changes']);
+
         // Legacy support
         add_action('wp_ajax_qa_assistant_get_branch_data', [$this, 'get_branch_data']);
 
@@ -398,6 +402,99 @@ class Ajax
                 'plugin_dir' => $plugin_dir,
                 'branch' => $branch,
                 'message' => $result['message']
+            ]);
+        } else {
+            wp_send_json_error([
+                'message' => $result['error']
+            ]);
+        }
+    }
+
+    /**
+     * Stash changes for a repository
+     */
+    public function stash_changes()
+    {
+        // Verify nonce for security
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
+            wp_send_json_error([
+                'message' => 'Security check failed.'
+            ]);
+        }
+
+        $plugin_dir = sanitize_text_field(wp_unslash($_POST['plugin_dir'] ?? ''));
+
+        if (empty($plugin_dir)) {
+            wp_send_json_error([
+                'message' => 'Plugin directory is required.'
+            ]);
+        }
+
+        $path = qa_assistant_get_plugin_path($plugin_dir);
+
+        // Validate plugin directory exists
+        if (!is_dir($path)) {
+            wp_send_json_error([
+                'message' => 'Plugin directory does not exist.'
+            ]);
+        }
+
+        $result = $this->gitManager->stashChanges($path);
+
+        if ($result['success']) {
+            wp_send_json_success([
+                'message' => $result['message'],
+                'plugin_dir' => $plugin_dir
+            ]);
+        } else {
+            wp_send_json_error([
+                'message' => $result['error']
+            ]);
+        }
+    }
+
+    /**
+     * Commit changes for a repository
+     */
+    public function commit_changes()
+    {
+        // Verify nonce for security
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
+            wp_send_json_error([
+                'message' => 'Security check failed.'
+            ]);
+        }
+
+        $plugin_dir = sanitize_text_field(wp_unslash($_POST['plugin_dir'] ?? ''));
+        $message = sanitize_text_field(wp_unslash($_POST['commit_message'] ?? ''));
+
+        if (empty($plugin_dir)) {
+            wp_send_json_error([
+                'message' => 'Plugin directory is required.'
+            ]);
+        }
+
+        if (empty(trim($message))) {
+            wp_send_json_error([
+                'message' => 'Commit message is required.'
+            ]);
+        }
+
+        $path = qa_assistant_get_plugin_path($plugin_dir);
+
+        // Validate plugin directory exists
+        if (!is_dir($path)) {
+            wp_send_json_error([
+                'message' => 'Plugin directory does not exist.'
+            ]);
+        }
+
+        $result = $this->gitManager->commitChanges($path, $message);
+
+        if ($result['success']) {
+            wp_send_json_success([
+                'message' => $result['message'],
+                'plugin_dir' => $plugin_dir
             ]);
         } else {
             wp_send_json_error([

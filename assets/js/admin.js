@@ -381,6 +381,8 @@
             notification.find('.qa-notification-close').on('click', function () {
                 hideNotification(notification);
             });
+
+            return notification;
         }
 
         function getNotificationTitle(type) {
@@ -402,8 +404,8 @@
 
         // Global function for pull operations (called via onclick)
         window.qaAssistantPull = function (pluginDir) {
-            // Show immediate feedback
-            showNotification('Pulling latest changes...', 'info');
+            // Show initial feedback that we can track and hide if needed
+            let pullingNotification = showNotification('Pulling latest changes...', 'info');
 
             // Find the button that was clicked and add loading state
             let $button = $('.qa-pull-button').filter(function () {
@@ -417,15 +419,17 @@
 
                 pullBranch(pluginDir)
                     .done(function (response) {
-                        if (response.success) {
+                        if (response && response.success) {
                             showNotification(`Successfully pulled changes for branch: ${response.data.branch}`, 'success');
                             // Reload page to show updated state
                             setTimeout(() => location.reload(), 1500);
                         } else {
-                            if (response.data.has_changes) {
-                                showNotification('You have uncommitted changes. Please commit or stash them before pulling.', 'warning');
+                            if (response && response.data && response.data.has_changes) {
+                                hideNotification(pullingNotification); // Hide the info toast
+                                showUncommittedChangesModal(pluginDir);
                             } else {
-                                showNotification(response.data.message || 'Failed to pull changes', 'error');
+                                let errMsg = (response && response.data && response.data.message) ? response.data.message : 'Failed to pull changes';
+                                showNotification(errMsg, 'error');
                             }
                         }
                     })
@@ -442,11 +446,17 @@
                 // Fallback if button not found
                 pullBranch(pluginDir)
                     .done(function (response) {
-                        if (response.success) {
+                        if (response && response.success) {
                             showNotification(`Successfully pulled changes for branch: ${response.data.branch}`, 'success');
                             setTimeout(() => location.reload(), 1500);
                         } else {
-                            showNotification(response.data.message || 'Failed to pull changes', 'error');
+                            if (response && response.data && response.data.has_changes) {
+                                hideNotification(pullingNotification); // Hide the info toast
+                                showUncommittedChangesModal(pluginDir);
+                            } else {
+                                let errMsg = (response && response.data && response.data.message) ? response.data.message : 'Failed to pull changes';
+                                showNotification(errMsg, 'error');
+                            }
                         }
                     })
                     .fail(function (xhr, status, error) {
@@ -559,6 +569,124 @@
         function getPluginSlug(elementId) {
             let parts = elementId.split("_");
             return parts[2]; // Extract the plugin slug
+        }
+
+        // --- Uncommitted Changes Modal Logic ---
+        function showUncommittedChangesModal(pluginDir) {
+            $('.qa-action-modal').remove();
+
+            let modalHtml = $(`
+                <div class="qa-action-modal-overlay qa-action-modal" id="qaUncommittedModal">
+                    <div class="qa-action-modal-content">
+                        <div class="qa-action-modal-header">
+                            <h3 class="qa-action-modal-title">Uncommitted Changes Found</h3>
+                            <button class="qa-action-modal-close" aria-label="Close modal">&times;</button>
+                        </div>
+                        <div class="qa-action-modal-body">
+                            <p>You have uncommitted local changes that prevent pulling. How would you like to proceed?</p>
+                            
+                            <!-- Commit Section -->
+                            <div class="qa-commit-section">
+                                <label for="qaCommitMessage">Commit Message:</label>
+                                <input type="text" id="qaCommitMessage" class="qa-commit-input" placeholder="e.g. Fixed minor bug">
+                            </div>
+                        </div>
+                        <div class="qa-action-modal-footer">
+                            <button class="qa-btn qa-btn-secondary qa-close-modal">Cancel</button>
+                            <button class="qa-btn qa-btn-warning qa-stash-btn">Stash & Pull</button>
+                            <button class="qa-btn qa-btn-primary qa-commit-btn">Commit & Pull</button>
+                        </div>
+                    </div>
+                </div>
+            `);
+
+            $('body').append(modalHtml);
+            let $modal = modalHtml;
+
+            // Close actions
+            $modal.find('.qa-action-modal-close, .qa-close-modal').on('click', function () {
+                $modal.remove();
+            });
+
+            // Stash action
+            $modal.find('.qa-stash-btn').on('click', function () {
+                let $btn = $(this);
+                $btn.prop('disabled', true).text('Stashing...');
+                $modal.find('.qa-btn').prop('disabled', true);
+
+                stashChanges(pluginDir).done(function (response) {
+                    if (response.success) {
+                        $modal.remove();
+                        // Proceed with pull
+                        showNotification('Pulling latest changes...', 'info');
+                        window.qaAssistantPull(pluginDir);
+                    } else {
+                        showNotification(response.data.message || 'Failed to stash changes.', 'error');
+                        $modal.find('.qa-btn').prop('disabled', false);
+                        $btn.text('Stash & Pull');
+                    }
+                }).fail(function () {
+                    showNotification('Network error occurred during stash.', 'error');
+                    $modal.find('.qa-btn').prop('disabled', false);
+                    $btn.text('Stash & Pull');
+                });
+            });
+
+            // Commit action
+            $modal.find('.qa-commit-btn').on('click', function () {
+                let message = $modal.find('#qaCommitMessage').val().trim();
+                if (!message) {
+                    showNotification('Please enter a commit message.', 'warning');
+                    $modal.find('#qaCommitMessage').focus();
+                    return;
+                }
+
+                let $btn = $(this);
+                $btn.prop('disabled', true).text('Committing...');
+                $modal.find('.qa-btn').prop('disabled', true);
+
+                commitChanges(pluginDir, message).done(function (response) {
+                    if (response.success) {
+                        $modal.remove();
+                        // Proceed with pull
+                        showNotification('Pulling latest changes...', 'info');
+                        window.qaAssistantPull(pluginDir);
+                    } else {
+                        showNotification(response.data.message || 'Failed to commit changes.', 'error');
+                        $modal.find('.qa-btn').prop('disabled', false);
+                        $btn.text('Commit & Pull');
+                    }
+                }).fail(function () {
+                    showNotification('Network error occurred during commit.', 'error');
+                    $modal.find('.qa-btn').prop('disabled', false);
+                    $btn.text('Commit & Pull');
+                });
+            });
+        }
+
+        function stashChanges(pluginDir) {
+            return $.ajax({
+                url: qaAssistant.ajaxUrl,
+                method: "POST",
+                data: {
+                    action: "qa_assistant_stash_changes",
+                    nonce: qaAssistant.nonce,
+                    plugin_dir: pluginDir
+                }
+            });
+        }
+
+        function commitChanges(pluginDir, message) {
+            return $.ajax({
+                url: qaAssistant.ajaxUrl,
+                method: "POST",
+                data: {
+                    action: "qa_assistant_commit_changes",
+                    nonce: qaAssistant.nonce,
+                    plugin_dir: pluginDir,
+                    commit_message: message
+                }
+            });
         }
 
     });

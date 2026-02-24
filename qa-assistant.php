@@ -165,3 +165,5 @@ function qa_assistant()
 
 // Call the plugin
 qa_assistant();
+
+// Test uncommitted change for git pull modal
