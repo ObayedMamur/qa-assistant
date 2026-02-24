@@ -210,7 +210,7 @@
         // --- END NEW SEARCH LOGIC ---
 
         // Enhanced branch switching with immediate feedback
-        $(document).on('click', '.qa_assistant_git-branch-list-items', function (e) {
+        $(document).on('click', '.qa_assistant_git-branch-item', function (e) {
             e.preventDefault();
 
             let elementId = $(this).attr('id');
@@ -319,7 +319,7 @@
             let branchContainer = $(`#git_branch_${pluginDir.replace(/[^a-zA-Z0-9]/g, '')}`);
 
             // Remove current-branch class from all items
-            branchContainer.find('.qa_assistant_git-branch-list-items').removeClass('current-branch');
+            branchContainer.find('.qa_assistant_git-branch-item').removeClass('current-branch');
 
             // Add current-branch class to the new current branch
             branchContainer.find(`[id$="_${currentBranch.replace(/[^a-zA-Z0-9]/g, '')}"]`).addClass('current-branch');
