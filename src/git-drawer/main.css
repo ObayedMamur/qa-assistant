@@ -1,0 +1,145 @@
+/* 
+ * Git Branches Drawer — Tailwind CSS (scoped, no preflight)
+ * Only import utilities and theme — skip preflight to avoid WP style pollution
+ */
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
+
+/* 
+ * Scope all drawer styles inside #git-branches-root
+ * This prevents any CSS from polluting WP admin or frontend styles
+ */
+#git-branches-root {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#git-branches-root *,
+#git-branches-root *::before,
+#git-branches-root *::after {
+    box-sizing: border-box;
+}
+
+#git-branches-root button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    outline: none;
+}
+
+#git-branches-root input {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    outline: none;
+    border: none;
+    background: none;
+    margin: 0;
+}
+
+#git-branches-root svg {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+#git-branches-root h2,
+#git-branches-root h3,
+#git-branches-root p,
+#git-branches-root span,
+#git-branches-root label,
+#git-branches-root div {
+    margin: 0;
+    padding: 0;
+}
+
+/* =============================================
+   Admin Bar Trigger — alignment & contrast fixes
+   ============================================= */
+#wpadminbar .qa-git-drawer-trigger>.ab-item {
+    display: flex !important;
+    align-items: center !important;
+    height: 32px !important;
+    padding: 0 10px !important;
+    color: #e0e0e0 !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+}
+
+#wpadminbar .qa-git-drawer-trigger>.ab-item:hover {
+    color: #72aee6 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+#wpadminbar .qa-git-drawer-trigger .qa-git-drawer-trigger-inner {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    line-height: 1 !important;
+}
+
+#wpadminbar .qa-git-drawer-trigger .qa-git-drawer-trigger-inner svg {
+    width: 16px !important;
+    height: 16px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    position: relative !important;
+    top: 0 !important;
+}
+
+#wpadminbar .qa-git-drawer-trigger .qa-git-drawer-label {
+    font-size: 13px !important;
+    line-height: 32px !important;
+    color: inherit !important;
+}
+
+/* =============================================
+   Scrollbar styling (scoped)
+   ============================================= */
+#git-branches-root .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+#git-branches-root .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#git-branches-root .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 3px;
+}
+
+#git-branches-root .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+/* =============================================
+   Toast animation
+   ============================================= */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Ensure drawer root has proper z-index stacking */
+#git-branches-root {
+    position: relative;
+    z-index: 100000;
+}

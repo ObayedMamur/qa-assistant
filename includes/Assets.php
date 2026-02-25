@@ -24,6 +24,9 @@ class Assets
         add_action('admin_enqueue_scripts', [$this, 'register_dashboard_assets']);
         // Enqueue admin bar assets on frontend if admin bar is showing
         add_action('wp_enqueue_scripts', [$this, 'enqueue_admin_bar_assets']);
+        // Enqueue Git Branches drawer React app (admin + frontend)
+        add_action('admin_enqueue_scripts', [$this, 'register_drawer_assets']);
+        add_action('wp_enqueue_scripts', [$this, 'register_drawer_assets']);
     }
 
     /**
@@ -211,6 +214,54 @@ class Assets
             'nonce' => wp_create_nonce('qa-assistant-admin-nonce'),
             'clone_nonce' => wp_create_nonce('qa_assistant_clone_repo'),
             'ajaxUrl' => admin_url('admin-ajax.php'),
+            'pluginUrl' => QA_ASSISTANT_PLUGIN_URL,
+        ]);
+    }
+
+    /**
+     * Register Git Branches Drawer React assets.
+     * Loads on both admin and frontend when admin bar is visible.
+     */
+    public function register_drawer_assets()
+    {
+        // Only load for logged-in users with proper capabilities
+        if (!is_user_logged_in() || !current_user_can('manage_options')) {
+            return;
+        }
+
+        // On frontend, only load if admin bar is showing
+        if (!is_admin() && !is_admin_bar_showing()) {
+            return;
+        }
+
+        $build_dir = QA_ASSISTANT_PATH . '/build/git-drawer';
+        $build_url = QA_ASSISTANT_URL . '/build/git-drawer';
+
+        if (!file_exists($build_dir . '/index.asset.php')) {
+            return;
+        }
+
+        $asset_file = include $build_dir . '/index.asset.php';
+
+        wp_enqueue_script(
+            'qa-git-drawer',
+            $build_url . '/index.js',
+            $asset_file['dependencies'],
+            $asset_file['version'],
+            true
+        );
+
+        wp_enqueue_style(
+            'qa-git-drawer-style',
+            $build_url . '/index.css',
+            [],
+            $asset_file['version']
+        );
+
+        // Pass data to the drawer React app
+        wp_localize_script('qa-git-drawer', 'qaGitDrawer', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('qa-assistant-admin-nonce'),
             'pluginUrl' => QA_ASSISTANT_PLUGIN_URL,
         ]);
     }
