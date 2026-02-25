@@ -6,7 +6,7 @@
 set -e
 
 PLUGIN_NAME="qa-assistant"
-BUILD_DIR="build"
+BUILD_DIR="dist"
 PLUGIN_VERSION=$(grep "Version:" qa-assistant.php | sed 's/.*Version: *//' | sed 's/ .*//')
 
 # Install production dependencies

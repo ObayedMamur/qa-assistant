@@ -60,6 +60,6 @@
             "install-path": "../czproject/git-php"
         }
     ],
-    "dev": true,
+    "dev": false,
     "dev-package-names": []
 }

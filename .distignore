@@ -106,7 +106,7 @@ temp/
 *.zip
 *.tar.gz
 *.rar
-build/
+dist/
 
 # Backup files
 *.bak
