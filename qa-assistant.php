@@ -68,6 +68,9 @@ final class Qa_Assistant
 
         add_action('plugins_loaded', [$this, 'init_plugin']);
 
+        // Add "Settings" link to plugin action links on the Plugins page
+        add_filter('plugin_action_links_' . QA_ASSISTANT_PLUGIN_BASENAME, [$this, 'plugin_action_links']);
+
 
     }
 
@@ -127,6 +130,19 @@ final class Qa_Assistant
         }
 
         new QaAssistant\API();
+    }
+
+    /**
+     * Add "Settings" link to plugin action links
+     *
+     * @param array $links Existing plugin action links
+     * @return array Modified plugin action links
+     */
+    public function plugin_action_links($links)
+    {
+        $settings_link = '<a href="' . admin_url('tools.php?page=qa-assistant') . '">Settings</a>';
+        array_unshift($links, $settings_link);
+        return $links;
     }
 
     /**

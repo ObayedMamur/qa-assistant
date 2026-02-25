@@ -997,7 +997,7 @@ const QAAssistantDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 font-sans text-slate-900">
+        <div className="bg-slate-50/50 p-4 md:p-8 font-sans text-slate-900">
             {/* Confirm Modal */}
             <ConfirmModal
                 isOpen={confirmState.isOpen}

@@ -1,1 +1,76 @@
-@import "tailwindcss";
+/*
+ * QA Assistant Dashboard — Tailwind CSS (no preflight)
+ * Import only theme + utilities, skip base/preflight to avoid resetting WP admin styles
+ * PostCSS prefix-selector scopes all selectors to #qa-assistant-dashboard
+ */
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
+
+/*
+ * Scoped minimal reset — replaces Tailwind preflight for dashboard elements only.
+ * postcss-prefix-selector will auto-wrap these in #qa-assistant-dashboard.
+ * This removes browser user-agent default borders/backgrounds on form elements
+ * without affecting WordPress admin styles outside the dashboard.
+ */
+
+/* Box-sizing reset */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Remove default borders and backgrounds from form elements */
+button,
+input,
+select,
+textarea {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+}
+
+/* Remove default button appearance */
+button {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Remove default select appearance quirks */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Remove default focus outlines — components handle their own */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+}
+
+/* Sensible defaults for images and SVGs */
+img,
+svg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Reset headings and common text elements */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    margin: 0;
+    padding: 0;
+}

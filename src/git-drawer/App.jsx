@@ -97,12 +97,12 @@ function DrawerInner() {
                             {/* Content — Repo sidebar + Branch panel */}
                             <div className="flex flex-1 min-h-0 overflow-hidden">
                                 {/* Repository Sidebar (30%) */}
-                                <div className="w-[30%] border-r border-gray-800 flex flex-col min-h-0 bg-[#0d1117]">
+                                <div className="w-[50%] border-r border-gray-800 flex flex-col min-h-0 bg-[#0d1117]">
                                     <RepositoryList />
                                 </div>
 
                                 {/* Branch Panel (70%) */}
-                                <div className="w-[70%] flex flex-col min-h-0 bg-[#0d1117]">
+                                <div className="w-[50%] flex flex-col min-h-0 bg-[#0d1117]">
                                     <BranchList />
                                 </div>
                             </div>
