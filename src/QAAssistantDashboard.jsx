@@ -93,6 +93,7 @@ const Button = ({ children, variant = "primary", size = "md", className = "", ic
 
     const variants = {
         primary: "bg-slate-900 text-white hover:bg-slate-900/90",
+        success: "bg-emerald-600 text-white hover:bg-emerald-700",
         secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
         outline: "border border-slate-200 hover:bg-slate-100 hover:text-slate-900",
         ghost: "hover:bg-slate-100 hover:text-slate-900",
@@ -119,7 +120,7 @@ const Button = ({ children, variant = "primary", size = "md", className = "", ic
 
 const Input = (props) => (
     <input
-        className={`flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50 ${props.className || ''}`}
+        className={`flex h-10 w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50 ${props.className || ''}`}
         {...props}
     />
 );
@@ -144,6 +145,28 @@ const Switch = ({ checked, onCheckedChange, disabled = false }) => (
         />
     </button>
 );
+
+const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center" style={{ position: 'fixed' }}>
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+            <div className="relative bg-white rounded-xl shadow-2xl border border-slate-200 p-6 max-w-sm w-full mx-4" style={{ zIndex: 10000 }}>
+                <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                        <AlertCircle className="w-5 h-5 text-red-600" />
+                    </div>
+                    <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+                </div>
+                <p className="text-sm text-slate-600 mb-5 leading-relaxed">{message}</p>
+                <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={onCancel}>Cancel</Button>
+                    <Button variant="destructive" size="sm" onClick={onConfirm}>Remove</Button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 // --- API Helper ---
 const apiCall = async (action, data = {}, nonceType = 'nonce') => {
@@ -656,6 +679,7 @@ const QAAssistantDashboard = () => {
     const [showActivityLog, setShowActivityLog] = useState(false);
     const [hasDisplayChanges, setHasDisplayChanges] = useState(false);
     const initialPluginsRef = useRef(null);
+    const [confirmState, setConfirmState] = useState({ isOpen: false, slug: '', name: '' });
 
     const addToast = useCallback((message, type = 'info') => {
         const id = Date.now();
@@ -690,12 +714,27 @@ const QAAssistantDashboard = () => {
         if (!monitor) {
             const plugin = selectedPlugins.find(p => p.slug === slug);
             const name = plugin ? plugin.name : slug;
-            if (!window.confirm(`Remove "${name}" from monitoring?`)) return;
+            setConfirmState({ isOpen: true, slug, name });
+            return;
         }
         try {
             await apiCall('qa_assistant_toggle_monitor', { slug, monitor });
-            addToast(monitor ? 'Plugin added to monitoring' : 'Plugin removed from monitoring', 'success');
-            fetchPlugins();
+            addToast('Plugin added to monitoring', 'success');
+            await fetchPlugins();
+            setHasDisplayChanges(true);
+        } catch (error) {
+            addToast(error.message, 'error');
+        }
+    };
+
+    const handleConfirmRemove = async () => {
+        const { slug } = confirmState;
+        setConfirmState({ isOpen: false, slug: '', name: '' });
+        try {
+            await apiCall('qa_assistant_toggle_monitor', { slug, monitor: false });
+            addToast('Plugin removed from monitoring', 'success');
+            await fetchPlugins();
+            setHasDisplayChanges(true);
         } catch (error) {
             addToast(error.message, 'error');
         }
@@ -771,15 +810,17 @@ const QAAssistantDashboard = () => {
                 <CardContent>
                     <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
                         <div className="relative flex-1 w-full">
-                            <Github className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                            <Github className="absolute left-3 top-3 h-4 w-4 text-slate-500 z-10" />
                             <Input
                                 placeholder="https://github.com/username/repo.git"
                                 className="pl-9 !h-10 !py-2 !box-border w-full !bg-white"
                                 value={repoUrl}
                                 onChange={(e) => setRepoUrl(e.target.value)}
+                                autoFocus
                             />
                         </div>
                         <Button
+                            variant="success"
                             disabled={!repoUrl || isCloning}
                             onClick={handleClone}
                             icon={DownloadCloud}
@@ -788,10 +829,10 @@ const QAAssistantDashboard = () => {
                         </Button>
                     </div>
 
-                    <div className="mt-4 p-3.5 bg-blue-50/60 rounded-lg border border-blue-100">
-                        <div className="flex items-start gap-3">
-                            <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                            <p className="text-xs text-blue-700 leading-relaxed">
+                    <div className="mt-4 px-3.5 py-3 bg-blue-50/60 rounded-lg border border-blue-100">
+                        <div className="flex items-center gap-2.5">
+                            <AlertCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                            <p className="text-xs text-blue-700 leading-normal">
                                 <span className="font-medium">Private repositories only:</span> Ensure your server's SSH keys are added to your GitHub account or include a Personal Access Token in the URL. Public repositories can be cloned without authentication.
                             </p>
                         </div>
@@ -847,7 +888,24 @@ const QAAssistantDashboard = () => {
                         <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Currently Monitoring</h4>
 
                         {isLoadingPlugins ? (
-                            <div className="p-8 text-center text-slate-500 text-sm">Loading repositories...</div>
+                            <div className="grid grid-cols-1 gap-4">
+                                {[1, 2, 3].map((i) => (
+                                    <div key={i} className="flex items-center justify-between p-5 bg-white border border-slate-200 rounded-xl animate-pulse">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-12 w-12 rounded-xl bg-slate-200" />
+                                            <div className="space-y-2">
+                                                <div className="h-4 w-40 bg-slate-200 rounded" />
+                                                <div className="h-3 w-56 bg-slate-100 rounded" />
+                                                <div className="h-3 w-24 bg-slate-100 rounded" />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-4 w-16 bg-slate-200 rounded" />
+                                            <div className="h-5 w-5 bg-slate-100 rounded" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         ) : selectedPlugins.length === 0 ? (
                             <div className="p-8 text-center text-slate-500 text-sm bg-slate-50 rounded-lg border border-dashed border-slate-300">
                                 No plugins are currently being monitored. Add plugins from the list above.
@@ -940,6 +998,14 @@ const QAAssistantDashboard = () => {
 
     return (
         <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 font-sans text-slate-900">
+            {/* Confirm Modal */}
+            <ConfirmModal
+                isOpen={confirmState.isOpen}
+                title="Remove Plugin"
+                message={`Are you sure you want to remove "${confirmState.name}" from monitoring? This plugin will no longer show branch info in the Admin Bar.`}
+                onConfirm={handleConfirmRemove}
+                onCancel={() => setConfirmState({ isOpen: false, slug: '', name: '' })}
+            />
             {/* Toast Container */}
             <AnimatePresence>
                 {toasts.map(toast => (
