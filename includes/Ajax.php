@@ -562,7 +562,7 @@ class Ajax
         $repo_name = '';
 
         // Try parsing as URL first
-        $path = parse_url($repo_url, PHP_URL_PATH);
+        $path = wp_parse_url($repo_url, PHP_URL_PATH);
         if ($path) {
             $path_parts = pathinfo($path);
             $repo_name = $path_parts['filename'];
@@ -626,10 +626,11 @@ class Ajax
         // Retrieve plugins data
         // Expecting $_POST['plugins'] to be an array of objects: { slug: '...', alias: '...', is_monitored: true/false }
         // Or a JSON string
-        $plugins_input = isset($_POST['plugins']) ? $_POST['plugins'] : [];
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Data is sanitized per-field below in the foreach loop.
+        $plugins_input = isset($_POST['plugins']) ? wp_unslash($_POST['plugins']) : [];
 
         if (is_string($plugins_input)) {
-            $plugins = json_decode(wp_unslash($plugins_input), true);
+            $plugins = json_decode($plugins_input, true);
         } else {
             $plugins = $plugins_input;
         }

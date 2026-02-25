@@ -26,6 +26,7 @@ define('QA_ASSISTANT_PLUGIN_BASENAME', plugin_basename(__FILE__));
  * @param string $plugin_dir The plugin directory name
  * @return string The absolute path to the plugin directory
  */
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Uses 'qa_assistant' prefix matching the plugin slug.
 function qa_assistant_get_plugin_path($plugin_dir)
 {
     // Use WordPress function to get plugins directory
@@ -174,6 +175,7 @@ final class Qa_Assistant
  *
  * @return \Qa_Assistant
  */
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Uses 'qa_assistant' prefix matching the plugin slug.
 function qa_assistant()
 {
     return Qa_Assistant::init();

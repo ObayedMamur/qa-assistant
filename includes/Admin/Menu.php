@@ -10,13 +10,15 @@ if (!defined('ABSPATH')) {
 /**
  * The Menu handler class
  */
-class Menu {
+class Menu
+{
 
     /**
      * Initialize the class
      */
-    function __construct( ) {
-        add_action( 'admin_menu', [ $this, 'admin_menu' ] );
+    function __construct()
+    {
+        add_action('admin_menu', [$this, 'admin_menu']);
     }
 
     /**
@@ -24,13 +26,14 @@ class Menu {
      *
      * @return void
      */
-    public function admin_menu() {
+    public function admin_menu()
+    {
         $parent_slug = 'qa-assistant';
-        $capability = apply_filters('qa-assistant/menu/capability', 'manage_options');
+        $capability = apply_filters('qa_assistant_menu_capability', 'manage_options');
 
         // $hook = add_menu_page(__('Options Table', 'nhrrob-options-table-manager'), __('Options Table', 'nhrrob-options-table-manager'), $capability, $parent_slug, [$this, 'settings_page'], 'dashicons-admin-post');
         // add_submenu_page( $parent_slug, __( 'Settings', 'nhrrob-options-table-manager' ), __( 'Settings', 'nhrrob-options-table-manager' ), $capability, 'nhrotm-options-table-manager-settings', [ $this, 'settings_page' ] );
-        $hook = add_submenu_page( 'tools.php', __( 'QA Assistant', 'qa-assistant' ), __( 'QA Assistant', 'qa-assistant' ), $capability, $parent_slug, [ $this, 'settings_page' ] );
+        $hook = add_submenu_page('tools.php', __('QA Assistant', 'qa-assistant'), __('QA Assistant', 'qa-assistant'), $capability, $parent_slug, [$this, 'settings_page']);
 
         add_action('admin_head-' . $hook, [$this, 'enqueue_assets']);
     }
@@ -40,7 +43,8 @@ class Menu {
      *
      * @return void
      */
-    public function settings_page() {
+    public function settings_page()
+    {
         // Check user capabilities
         if (!current_user_can('manage_options')) {
             wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'qa-assistant'));
@@ -48,12 +52,12 @@ class Menu {
 
         $settings = new Settings();
 
-        wp_enqueue_style( 'qa-assistant-select2-style' );
-        wp_enqueue_script( 'qa-assistant-select2-script' );
-        wp_enqueue_style( 'qa-assistant-bootstrap-style' );
-        wp_enqueue_script( 'qa-assistant-bootstrap-script' );
-        wp_enqueue_script( 'qa-assistant-popper-js-script' );
-        wp_enqueue_script( 'qa-assistant-jquery-slim-script' );
+        wp_enqueue_style('qa-assistant-select2-style');
+        wp_enqueue_script('qa-assistant-select2-script');
+        wp_enqueue_style('qa-assistant-bootstrap-style');
+        wp_enqueue_script('qa-assistant-bootstrap-script');
+        wp_enqueue_script('qa-assistant-popper-js-script');
+        wp_enqueue_script('qa-assistant-jquery-slim-script');
 
         $available_plugins = $settings->get_available_plugins();
 
@@ -63,12 +67,12 @@ class Menu {
             $selected_plugin_basename = sanitize_text_field(wp_unslash($_GET['plugin']));
         }
 
-		// Get currently selected plugins for the dropdown
-		$current_settings = maybe_unserialize(get_option('qa_assistant_settings', array()));
-		$selected_plugins = isset($current_settings['selected_plugins']) ? $current_settings['selected_plugins'] : array();
+        // Get currently selected plugins for the dropdown
+        $current_settings = maybe_unserialize(get_option('qa_assistant_settings', array()));
+        $selected_plugins = isset($current_settings['selected_plugins']) ? $current_settings['selected_plugins'] : array();
 
         // Save settings data
-        if ( isset( $_POST['qa_assistant_settings_form_nonce'] ) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['qa_assistant_settings_form_nonce'])), 'qa_assistant_settings_form_action' ) ) {
+        if (isset($_POST['qa_assistant_settings_form_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['qa_assistant_settings_form_nonce'])), 'qa_assistant_settings_form_action')) {
             // get posted data and sanitize
             $selected_plugins = [];
             if (isset($_POST['qa_assistant_plugins']) && is_array($_POST['qa_assistant_plugins'])) {
@@ -140,7 +144,7 @@ class Menu {
             }
         }
 
-		require QA_ASSISTANT_PLUGIN_DIR_PATH . 'templates/settings-page.php';
+        require QA_ASSISTANT_PLUGIN_DIR_PATH . 'templates/settings-page.php';
     }
 
     /**
@@ -148,8 +152,9 @@ class Menu {
      *
      * @return void
      */
-    public function enqueue_assets() {
-        wp_enqueue_style( 'qa-assistant-admin-style' );
-        wp_enqueue_script( 'qa-assistant-admin-script' );
+    public function enqueue_assets()
+    {
+        wp_enqueue_style('qa-assistant-admin-style');
+        wp_enqueue_script('qa-assistant-admin-script');
     }
 }
