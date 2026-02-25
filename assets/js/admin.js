@@ -1,125 +1,216 @@
-;(function($) {
+; (function ($) {
 
-    $(document).ready(function() {
-        $('.qa-assistant-select2').select2();
+    $(document).ready(function () {
+        $('.qa-assistant-select2').select2({
+            width: '100%'
+        });
+
+        // Tab Switching Logic
+        $('.qa-assistant-tab-link').on('click', function (e) {
+            e.preventDefault();
+
+            // Remove active class from all links and panes
+            $('.qa-assistant-tab-link').removeClass('active').attr('aria-selected', 'false');
+            $('.qa-assistant-tab-pane').removeClass('active');
+
+            // Add active class to clicked link
+            $(this).addClass('active').attr('aria-selected', 'true');
+
+            // Show corresponding pane
+            let target = $(this).attr('href');
+            $(target).addClass('active');
+        });
+
+        // Clone Repository Form Handling
+        $('#qa-assistant-clone-form').on('submit', function (e) {
+            e.preventDefault();
+
+            let $form = $(this);
+            let $btn = $('#qa-clone-btn');
+            let $spinner = $('#qa-clone-spinner');
+            let $status = $('#qa-clone-status');
+            let repoUrl = $('#qa-repo-url').val().trim();
+            // Get the nonce specifically for cloning
+            let cloneNonce = $('#qa_assistant_clone_nonce').val() || qaAssistant.nonce;
+
+            if (!repoUrl) {
+                showNotification('Please enter a repository URL', 'error');
+                return;
+            }
+
+            // Reset status
+            $status.hide().removeClass('notice-success notice-error notice-warning').html('');
+
+            // Show loading state
+            $btn.prop('disabled', true);
+            $spinner.addClass('is-active');
+
+            $.ajax({
+                url: qaAssistant.ajaxUrl,
+                method: "POST",
+                data: {
+                    action: "qa_assistant_clone_repo",
+                    nonce: cloneNonce,
+                    repo_url: repoUrl
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $status.addClass('notice-success')
+                            .html(`<p><strong>Success!</strong> ${response.data.message}<br><strong>Next Step:</strong> Please add the plugin "${response.data.repo_name}" to the 'Git Branch Display' list below and save settings to enable admin bar features.</p>`)
+                            .show();
+
+                        showNotification('Repository cloned successfully', 'success');
+
+                        // Clear input
+                        $('#qa-repo-url').val('');
+
+                        // Reload after a delay to show the new plugin in the list
+                        setTimeout(() => {
+                            location.reload();
+                        }, 3000); // Increased delay so user can read message
+                    } else {
+                        let msg = response.data.message || 'Unknown error occurred';
+                        $status.addClass('notice-error')
+                            .html(`<p><strong>Error:</strong> ${msg}</p>`)
+                            .show();
+
+                        if (response.data.target_exists) {
+                            showNotification('Target directory already exists', 'warning');
+                        } else {
+                            showNotification(msg, 'error');
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    let errorMsg = 'Network error occurred. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                        errorMsg = xhr.responseJSON.data.message;
+                    }
+
+                    $status.addClass('notice-error')
+                        .html(`<p><strong>Error:</strong> ${errorMsg}</p>`)
+                        .show();
+
+                    showNotification(errorMsg, 'error');
+                },
+                complete: function () {
+                    $btn.prop('disabled', false);
+                    $spinner.removeClass('is-active');
+                }
+            });
+        });
 
         // Add Git repository validation for plugin selection
         initializeGitValidation();
 
-        // Keyboard-based branch search functionality
-        let searchBuffer = '';
+        // --- NEW SEARCH LOGIC ---
 
-        // Handle keypress events on branch dropdowns
-        $(document).on('keydown', function(e) {
-            // Only activate when a branch dropdown is open
-            let openDropdown = $('.qa_assistant_git-branch .ab-sub-wrapper:visible');
-            if (openDropdown.length === 0) return;
+        // Prevent dropdown from closing when clicking inside search or toolbar
+        $(document).on('click', '.qa-branch-search-container, .qa-toolbar-container, .qa-branch-search-input', function (e) {
+            e.stopPropagation();
+        });
 
-            // Handle alphanumeric keys for search
-            if (e.key.length === 1 && e.key.match(/[a-zA-Z0-9\-_]/)) {
-                e.preventDefault();
-
-                // Add character to search buffer
-                searchBuffer += e.key.toLowerCase();
-
-                // Perform search
-                performBranchSearch(openDropdown, searchBuffer);
-            }
-
-            // Handle Escape to clear search
-            if (e.key === 'Escape') {
-                searchBuffer = '';
-                clearBranchSearch(openDropdown);
-            }
-
-            // Handle Backspace to remove last character
-            if (e.key === 'Backspace' && searchBuffer.length > 0) {
-                e.preventDefault();
-                searchBuffer = searchBuffer.slice(0, -1);
-                if (searchBuffer.length > 0) {
-                    performBranchSearch(openDropdown, searchBuffer);
-                } else {
-                    clearBranchSearch(openDropdown);
-                }
+        // Focus search input when dropdown opens
+        $('.qa_assistant_git-branch').hover(function () {
+            let $input = $(this).find('.qa-branch-search-input');
+            if ($input.length) {
+                setTimeout(() => $input.focus(), 100);
             }
         });
 
-        function performBranchSearch(dropdown, searchTerm) {
-            let branchContainer = dropdown.closest('.qa_assistant_git-branch');
-            let searchHint = branchContainer.find('.qa-branch-search-hint');
-            let hasMatches = false;
+        // Handle Input Event (Real-time filtering)
+        $(document.body).on('input', '.qa-branch-search-input', function (e) {
+            let searchTerm = $(this).val().toLowerCase().trim();
+            // console.log('Search input triggered:', searchTerm);
 
-            // Update search hint with blinking cursor
-            if (searchHint.length > 0) {
-                searchHint.find('.ab-item').html(`🔍 Searching: "${searchTerm}<span class="qa-search-cursor">|</span>"`);
-                branchContainer.addClass('qa-branch-search-active');
+            let $input = $(this);
+            // DOM Structure:
+            // div.ab-sub-wrapper
+            //   > ul.ab-submenu (contains Search LI)
+            //   > ul.qa-branch-list-scrollable (contains Branch LIs)
+
+            // 1. Find the UL containing the search input
+            let $searchUL = $input.closest('ul.ab-submenu');
+
+            // 2. Find the sibling UL that contains the branches
+            let $groupContainer = $searchUL.siblings('.qa-branch-list-scrollable');
+
+            // Fallback: If not found, try to find it within the same .ab-sub-wrapper parent
+            if ($groupContainer.length === 0) {
+                $groupContainer = $input.closest('.ab-sub-wrapper').find('.qa-branch-list-scrollable');
             }
 
-            // Filter and highlight branches
-            branchContainer.find('.qa_assistant_git-branch-list-items').each(function() {
+            // console.log('Group Container found:', $groupContainer.length);
+
+            let hasMatches = false;
+
+            // Loop through branch items
+            $groupContainer.find('.qa_assistant_git-branch-item').each(function () {
                 let $item = $(this);
-                let branchName = $item.find('.ab-item').text().toLowerCase();
+                let branchName = $item.find('.qa-branch-name').text(); // Use text() finding the name span directly is safer
+
+                // If data attribute exists use it, otherwise text
+                if ($item.data('branch-name')) {
+                    branchName = $item.data('branch-name');
+                }
+
+                if (!branchName) return;
+
+                branchName = branchName.toString().toLowerCase();
 
                 if (branchName.includes(searchTerm)) {
-                    $item.removeClass('qa-branch-hidden').show();
-
-                    // Highlight matching text
-                    let originalText = $item.find('.ab-item').text();
-                    let highlightedText = highlightSearchTerm(originalText, searchTerm);
-                    $item.find('.ab-item').html(highlightedText);
-
+                    $item.show();
                     hasMatches = true;
+
+                    // Highlight logic
+                    let originalName = $item.data('branch-name') || $item.find('.qa-branch-name').text();
+                    let highlighted = highlightSearchTerm(originalName, searchTerm);
+                    $item.find('.qa-branch-name').html(highlighted);
                 } else {
-                    $item.addClass('qa-branch-hidden').hide();
+                    $item.hide();
                 }
             });
 
-            // Show "no matches" if needed
-            if (!hasMatches && searchHint.length > 0) {
-                searchHint.find('.ab-item').html(`🔍 No matches for "${searchTerm}<span class="qa-search-cursor">|</span>"`);
+            // Empty state handling
+            let $noResultsMsg = $groupContainer.find('.qa-no-branches-dynamic');
+            let $serverNoResults = $groupContainer.find('.qa-no-branches');
+
+            if (!hasMatches) {
+                if ($noResultsMsg.length === 0) {
+                    // Check if a server-side one exists
+                    if ($serverNoResults.length > 0) {
+                        $serverNoResults.show();
+                    } else {
+                        // Create dynamic one
+                        $groupContainer.append('<li class="qa-no-branches-dynamic ab-item" style="padding: 12px; text-align: center; color: #94a3b8; font-style: italic; list-style: none;">No branches found</li>');
+                    }
+                } else {
+                    $noResultsMsg.show();
+                }
+            } else {
+                // Hide dynamic message
+                if ($noResultsMsg.length > 0) {
+                    $noResultsMsg.hide();
+                }
+                // Also hide server-side one if it exists
+                if ($serverNoResults.length > 0) {
+                    $serverNoResults.hide();
+                }
             }
-        }
-
-        function clearBranchSearch(dropdown) {
-            let branchContainer = dropdown.closest('.qa_assistant_git-branch');
-            let searchHint = branchContainer.find('.qa-branch-search-hint');
-
-            // Reset search hint
-            if (searchHint.length > 0) {
-                searchHint.find('.ab-item').html('🔍 Type to search branches...<span class="qa-search-cursor">|</span>');
-                branchContainer.removeClass('qa-branch-search-active');
-            }
-
-            // Show all branches and remove highlighting
-            branchContainer.find('.qa_assistant_git-branch-list-items').each(function() {
-                let $item = $(this);
-                $item.removeClass('qa-branch-hidden').show();
-
-                // Remove highlighting
-                let originalText = $item.find('.ab-item').text();
-                $item.find('.ab-item').text(originalText);
-            });
-        }
+        });
 
         function highlightSearchTerm(text, searchTerm) {
             if (!searchTerm) return text;
-
-            let regex = new RegExp(`(${searchTerm})`, 'gi');
+            // Escape special regex chars in search term
+            let safeTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            let regex = new RegExp(`(${safeTerm})`, 'gi');
             return text.replace(regex, '<span class="qa-branch-highlight">$1</span>');
         }
 
-        // Clear search when dropdown closes
-        $(document).on('click', function(e) {
-            if (!$(e.target).closest('.qa_assistant_git-branch').length) {
-                searchBuffer = '';
-                $('.qa_assistant_git-branch').each(function() {
-                    clearBranchSearch($(this).find('.ab-sub-wrapper'));
-                });
-            }
-        });
+        // --- END NEW SEARCH LOGIC ---
 
         // Enhanced branch switching with immediate feedback
-        $(document).on('click', '.qa_assistant_git-branch-list-items', function(e) {
+        $(document).on('click', '.qa_assistant_git-branch-item', function (e) {
             e.preventDefault();
 
             let elementId = $(this).attr('id');
@@ -160,7 +251,7 @@
             $this.find('.ab-item').html(`${originalText} <span style="color: #ffc107;">(switching...)</span>`);
 
             switchBranch(pluginDir, branchName, false)
-                .done(function(response) {
+                .done(function (response) {
                     if (response.success) {
                         showNotification(`Successfully switched to branch: ${response.data.current_branch}`, 'success');
 
@@ -175,11 +266,11 @@
                         handleBranchSwitchError(response.data, pluginDir, branchName);
                     }
                 })
-                .fail(function(xhr, status, error) {
+                .fail(function (xhr, status, error) {
                     showNotification('Network error occurred. Please try again.', 'error');
                     console.error('Branch switch failed:', error);
                 })
-                .always(function() {
+                .always(function () {
                     // Remove loader and re-enable item
                     loader.remove();
                     $this.removeClass('switching-branch');
@@ -194,7 +285,7 @@
                 // Show confirmation dialog for uncommitted changes
                 if (confirm(`You have uncommitted changes. Do you want to discard them and switch to ${branchName}?`)) {
                     switchBranch(pluginDir, branchName, true)
-                        .done(function(response) {
+                        .done(function (response) {
                             if (response.success) {
                                 showNotification(`Force switched to branch: ${response.data.current_branch}`, 'success');
                                 setTimeout(() => location.reload(), 1500);
@@ -228,7 +319,7 @@
             let branchContainer = $(`#git_branch_${pluginDir.replace(/[^a-zA-Z0-9]/g, '')}`);
 
             // Remove current-branch class from all items
-            branchContainer.find('.qa_assistant_git-branch-list-items').removeClass('current-branch');
+            branchContainer.find('.qa_assistant_git-branch-item').removeClass('current-branch');
 
             // Add current-branch class to the new current branch
             branchContainer.find(`[id$="_${currentBranch.replace(/[^a-zA-Z0-9]/g, '')}"]`).addClass('current-branch');
@@ -287,9 +378,11 @@
             }, 5000);
 
             // Manual close
-            notification.find('.qa-notification-close').on('click', function() {
+            notification.find('.qa-notification-close').on('click', function () {
                 hideNotification(notification);
             });
+
+            return notification;
         }
 
         function getNotificationTitle(type) {
@@ -310,12 +403,12 @@
         }
 
         // Global function for pull operations (called via onclick)
-        window.qaAssistantPull = function(pluginDir) {
-            // Show immediate feedback
-            showNotification('Pulling latest changes...', 'info');
+        window.qaAssistantPull = function (pluginDir) {
+            // Show initial feedback that we can track and hide if needed
+            let pullingNotification = showNotification('Pulling latest changes...', 'info');
 
             // Find the button that was clicked and add loading state
-            let $button = $('.qa-pull-button').filter(function() {
+            let $button = $('.qa-pull-button').filter(function () {
                 return $(this).attr('onclick') && $(this).attr('onclick').includes(pluginDir);
             });
 
@@ -325,24 +418,26 @@
                 $button.addClass('qa-pull-loading');
 
                 pullBranch(pluginDir)
-                    .done(function(response) {
-                        if (response.success) {
+                    .done(function (response) {
+                        if (response && response.success) {
                             showNotification(`Successfully pulled changes for branch: ${response.data.branch}`, 'success');
                             // Reload page to show updated state
                             setTimeout(() => location.reload(), 1500);
                         } else {
-                            if (response.data.has_changes) {
-                                showNotification('You have uncommitted changes. Please commit or stash them before pulling.', 'warning');
+                            if (response && response.data && response.data.has_changes) {
+                                hideNotification(pullingNotification); // Hide the info toast
+                                showUncommittedChangesModal(pluginDir);
                             } else {
-                                showNotification(response.data.message || 'Failed to pull changes', 'error');
+                                let errMsg = (response && response.data && response.data.message) ? response.data.message : 'Failed to pull changes';
+                                showNotification(errMsg, 'error');
                             }
                         }
                     })
-                    .fail(function(xhr, status, error) {
+                    .fail(function (xhr, status, error) {
                         showNotification('Network error occurred during pull. Please try again.', 'error');
                         console.error('Pull failed:', error);
                     })
-                    .always(function() {
+                    .always(function () {
                         // Restore button
                         $button.find('.ab-item').html(originalText);
                         $button.removeClass('qa-pull-loading');
@@ -350,15 +445,21 @@
             } else {
                 // Fallback if button not found
                 pullBranch(pluginDir)
-                    .done(function(response) {
-                        if (response.success) {
+                    .done(function (response) {
+                        if (response && response.success) {
                             showNotification(`Successfully pulled changes for branch: ${response.data.branch}`, 'success');
                             setTimeout(() => location.reload(), 1500);
                         } else {
-                            showNotification(response.data.message || 'Failed to pull changes', 'error');
+                            if (response && response.data && response.data.has_changes) {
+                                hideNotification(pullingNotification); // Hide the info toast
+                                showUncommittedChangesModal(pluginDir);
+                            } else {
+                                let errMsg = (response && response.data && response.data.message) ? response.data.message : 'Failed to pull changes';
+                                showNotification(errMsg, 'error');
+                            }
                         }
                     })
-                    .fail(function(xhr, status, error) {
+                    .fail(function (xhr, status, error) {
                         showNotification('Network error occurred during pull. Please try again.', 'error');
                         console.error('Pull failed:', error);
                     });
@@ -393,12 +494,12 @@
         }
 
         // Global function for refreshing branches (called via onclick)
-        window.qaAssistantRefresh = function(pluginDir) {
+        window.qaAssistantRefresh = function (pluginDir) {
             // Show immediate feedback
             showNotification('Fetching latest branches from remote...', 'info');
 
             // Find the button that was clicked and add loading state
-            let $button = $('.qa-refresh-button').filter(function() {
+            let $button = $('.qa-refresh-button').filter(function () {
                 return $(this).attr('onclick') && $(this).attr('onclick').includes(pluginDir);
             });
 
@@ -408,7 +509,7 @@
                 $button.addClass('qa-refresh-loading');
 
                 refreshBranches(pluginDir)
-                    .done(function(response) {
+                    .done(function (response) {
                         if (response.success) {
                             let message = response.data.fetch_success
                                 ? `Successfully fetched latest branches. Found ${response.data.branches.length} branches.`
@@ -422,11 +523,11 @@
                             showNotification(response.data.message || 'Failed to refresh branches', 'error');
                         }
                     })
-                    .fail(function(xhr, status, error) {
+                    .fail(function (xhr, status, error) {
                         showNotification('Network error occurred during refresh. Please try again.', 'error');
                         console.error('Refresh failed:', error);
                     })
-                    .always(function() {
+                    .always(function () {
                         // Restore button
                         $button.find('.ab-item').html(originalText);
                         $button.removeClass('qa-refresh-loading');
@@ -434,7 +535,7 @@
             } else {
                 // Fallback if button not found
                 refreshBranches(pluginDir)
-                    .done(function(response) {
+                    .done(function (response) {
                         if (response.success) {
                             let message = response.data.fetch_success
                                 ? `Successfully fetched latest branches. Found ${response.data.branches.length} branches.`
@@ -445,7 +546,7 @@
                             showNotification(response.data.message || 'Failed to refresh branches', 'error');
                         }
                     })
-                    .fail(function(xhr, status, error) {
+                    .fail(function (xhr, status, error) {
                         showNotification('Network error occurred during refresh. Please try again.', 'error');
                         console.error('Refresh failed:', error);
                     });
@@ -470,6 +571,124 @@
             return parts[2]; // Extract the plugin slug
         }
 
+        // --- Uncommitted Changes Modal Logic ---
+        function showUncommittedChangesModal(pluginDir) {
+            $('.qa-action-modal').remove();
+
+            let modalHtml = $(`
+                <div class="qa-action-modal-overlay qa-action-modal" id="qaUncommittedModal">
+                    <div class="qa-action-modal-content">
+                        <div class="qa-action-modal-header">
+                            <h3 class="qa-action-modal-title">Uncommitted Changes Found</h3>
+                            <button class="qa-action-modal-close" aria-label="Close modal">&times;</button>
+                        </div>
+                        <div class="qa-action-modal-body">
+                            <p>You have uncommitted local changes that prevent pulling. How would you like to proceed?</p>
+                            
+                            <!-- Commit Section -->
+                            <div class="qa-commit-section">
+                                <label for="qaCommitMessage">Commit Message:</label>
+                                <input type="text" id="qaCommitMessage" class="qa-commit-input" placeholder="e.g. Fixed minor bug">
+                            </div>
+                        </div>
+                        <div class="qa-action-modal-footer">
+                            <button class="qa-btn qa-btn-secondary qa-close-modal">Cancel</button>
+                            <button class="qa-btn qa-btn-warning qa-stash-btn">Stash & Pull</button>
+                            <button class="qa-btn qa-btn-primary qa-commit-btn">Commit & Pull</button>
+                        </div>
+                    </div>
+                </div>
+            `);
+
+            $('body').append(modalHtml);
+            let $modal = modalHtml;
+
+            // Close actions
+            $modal.find('.qa-action-modal-close, .qa-close-modal').on('click', function () {
+                $modal.remove();
+            });
+
+            // Stash action
+            $modal.find('.qa-stash-btn').on('click', function () {
+                let $btn = $(this);
+                $btn.prop('disabled', true).text('Stashing...');
+                $modal.find('.qa-btn').prop('disabled', true);
+
+                stashChanges(pluginDir).done(function (response) {
+                    if (response.success) {
+                        $modal.remove();
+                        // Proceed with pull
+                        showNotification('Pulling latest changes...', 'info');
+                        window.qaAssistantPull(pluginDir);
+                    } else {
+                        showNotification(response.data.message || 'Failed to stash changes.', 'error');
+                        $modal.find('.qa-btn').prop('disabled', false);
+                        $btn.text('Stash & Pull');
+                    }
+                }).fail(function () {
+                    showNotification('Network error occurred during stash.', 'error');
+                    $modal.find('.qa-btn').prop('disabled', false);
+                    $btn.text('Stash & Pull');
+                });
+            });
+
+            // Commit action
+            $modal.find('.qa-commit-btn').on('click', function () {
+                let message = $modal.find('#qaCommitMessage').val().trim();
+                if (!message) {
+                    showNotification('Please enter a commit message.', 'warning');
+                    $modal.find('#qaCommitMessage').focus();
+                    return;
+                }
+
+                let $btn = $(this);
+                $btn.prop('disabled', true).text('Committing...');
+                $modal.find('.qa-btn').prop('disabled', true);
+
+                commitChanges(pluginDir, message).done(function (response) {
+                    if (response.success) {
+                        $modal.remove();
+                        // Proceed with pull
+                        showNotification('Pulling latest changes...', 'info');
+                        window.qaAssistantPull(pluginDir);
+                    } else {
+                        showNotification(response.data.message || 'Failed to commit changes.', 'error');
+                        $modal.find('.qa-btn').prop('disabled', false);
+                        $btn.text('Commit & Pull');
+                    }
+                }).fail(function () {
+                    showNotification('Network error occurred during commit.', 'error');
+                    $modal.find('.qa-btn').prop('disabled', false);
+                    $btn.text('Commit & Pull');
+                });
+            });
+        }
+
+        function stashChanges(pluginDir) {
+            return $.ajax({
+                url: qaAssistant.ajaxUrl,
+                method: "POST",
+                data: {
+                    action: "qa_assistant_stash_changes",
+                    nonce: qaAssistant.nonce,
+                    plugin_dir: pluginDir
+                }
+            });
+        }
+
+        function commitChanges(pluginDir, message) {
+            return $.ajax({
+                url: qaAssistant.ajaxUrl,
+                method: "POST",
+                data: {
+                    action: "qa_assistant_commit_changes",
+                    nonce: qaAssistant.nonce,
+                    plugin_dir: pluginDir,
+                    commit_message: message
+                }
+            });
+        }
+
     });
 
     /**
@@ -477,12 +696,12 @@
      */
     function initializeGitValidation() {
         // Add change event listener to plugin selection dropdown
-        $('.qa-assistant-select2').on('change', function() {
+        $('.qa-assistant-select2').on('change', function () {
             validateSelectedPlugins();
         });
 
         // Add form submission validation
-        $('.qa-assistant-form').on('submit', function(e) {
+        $('.qa-assistant-form').on('submit', function (e) {
             if (!validateSelectedPlugins()) {
                 e.preventDefault();
                 return false;
@@ -498,7 +717,7 @@
         let nonGitPlugins = [];
 
         // Check each selected plugin
-        selectedValues.forEach(function(pluginDir) {
+        selectedValues.forEach(function (pluginDir) {
             let pluginCard = $(`.qa-plugin-card[data-plugin-dir="${pluginDir}"]`);
             if (pluginCard.length > 0) {
                 let gitStatus = pluginCard.find('.qa-git-status');

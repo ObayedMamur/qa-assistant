@@ -12,6 +12,7 @@ if (!defined('ABSPATH')) {
 /**
  * Simple test class for GitManager
  */
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Class uses 'QA_Assistant' prefix matching the plugin slug.
 class QA_Assistant_GitManager_Test
 {
     private $gitManager;
@@ -162,11 +163,11 @@ class QA_Assistant_GitManager_Test
 
         echo '<div class="notice notice-info">';
         echo '<h3>QA Assistant - GitManager Test Results</h3>';
-        
+
         foreach ($results as $testName => $result) {
             $status = $result['status'] ?? 'unknown';
             $statusClass = $status === 'pass' ? 'notice-success' : 'notice-error';
-            
+
             echo '<div class="' . esc_attr($statusClass) . '" style="margin: 10px 0; padding: 10px;">';
             echo '<strong>' . esc_html(ucfirst(str_replace('_', ' ', $testName))) . ':</strong> ';
             echo esc_html($result['message']);
@@ -178,20 +179,22 @@ class QA_Assistant_GitManager_Test
             if (isset($result['branches']) && is_array($result['branches'])) {
                 echo '<br><em>Available Branches: ' . esc_html(implode(', ', $result['branches'])) . '</em>';
             }
-            
+
             echo '</div>';
         }
-        
+
         echo '</div>';
     }
 }
 
 // Initialize and run tests if in admin (safely)
 if (is_admin()) {
-    add_action('admin_notices', function() {
-        if (function_exists('current_user_can') && current_user_can('manage_options') &&
+    add_action('admin_notices', function () {
+        if (
+            function_exists('current_user_can') && current_user_can('manage_options') &&
             isset($_GET['qa_assistant_test']) && sanitize_text_field(wp_unslash($_GET['qa_assistant_test'])) === '1' &&
-            isset($_GET['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'qa_assistant_test')) {
+            isset($_GET['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'qa_assistant_test')
+        ) {
             $test = new QA_Assistant_GitManager_Test();
             $test->displayTestResults();
         }

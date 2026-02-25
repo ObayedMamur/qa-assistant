@@ -1,0 +1,236 @@
+/* 
+ * Git Branches Drawer — Tailwind CSS (scoped, no preflight)
+ * Only import utilities — skip preflight to avoid WP style pollution
+ * Use @theme inline to prevent :root CSS variable emission
+ */
+@import "tailwindcss/utilities";
+
+@theme inline {
+    --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --color-red-50: oklch(97.1% .013 17.38);
+    --color-red-100: oklch(93.6% .032 17.717);
+    --color-red-200: oklch(88.5% .062 18.334);
+    --color-red-500: oklch(63.7% .237 25.331);
+    --color-red-600: oklch(57.7% .245 27.325);
+    --color-red-700: oklch(50.5% .213 27.518);
+    --color-red-900: oklch(39.6% .141 25.723);
+    --color-orange-50: oklch(98% .016 73.684);
+    --color-orange-600: oklch(64.6% .222 41.116);
+    --color-amber-50: oklch(98.7% .022 95.277);
+    --color-amber-100: oklch(96.2% .059 95.617);
+    --color-amber-200: oklch(92.4% .12 95.746);
+    --color-amber-300: oklch(87.9% .169 91.605);
+    --color-amber-400: oklch(82.8% .189 84.429);
+    --color-amber-500: oklch(76.9% .188 70.08);
+    --color-amber-600: oklch(66.6% .179 58.318);
+    --color-amber-700: oklch(55.5% .163 48.998);
+    --color-emerald-50: oklch(97.9% .021 166.113);
+    --color-emerald-100: oklch(95% .052 163.051);
+    --color-emerald-200: oklch(90.5% .093 164.15);
+    --color-emerald-400: oklch(76.5% .177 163.223);
+    --color-emerald-500: oklch(69.6% .17 162.48);
+    --color-emerald-600: oklch(59.6% .145 163.225);
+    --color-emerald-700: oklch(50.8% .118 165.612);
+    --color-blue-50: oklch(97% .014 254.604);
+    --color-blue-100: oklch(93.2% .032 255.585);
+    --color-blue-200: oklch(88.2% .059 254.128);
+    --color-blue-500: oklch(62.3% .214 259.815);
+    --color-blue-600: oklch(54.6% .245 262.881);
+    --color-blue-700: oklch(48.8% .243 264.376);
+    --color-blue-900: oklch(37.9% .146 265.522);
+    --color-indigo-200: oklch(87% .065 274.039);
+    --color-indigo-300: oklch(78.5% .115 274.713);
+    --color-indigo-400: oklch(67.3% .182 276.935);
+    --color-indigo-500: oklch(58.5% .233 277.117);
+    --color-violet-50: oklch(96.9% .016 293.756);
+    --color-violet-600: oklch(54.1% .281 293.009);
+    --color-slate-50: oklch(98.4% .003 247.858);
+    --color-slate-100: oklch(96.8% .007 247.896);
+    --color-slate-200: oklch(92.9% .013 255.508);
+    --color-slate-300: oklch(86.9% .022 252.894);
+    --color-slate-400: oklch(70.4% .04 256.788);
+    --color-slate-500: oklch(55.4% .046 257.417);
+    --color-slate-600: oklch(44.6% .043 257.281);
+    --color-slate-700: oklch(37.2% .044 257.287);
+    --color-slate-900: oklch(20.8% .042 265.755);
+    --color-gray-100: oklch(96.7% .003 264.542);
+    --color-gray-200: oklch(92.8% .006 264.531);
+    --color-gray-400: oklch(70.7% .022 261.325);
+    --color-gray-500: oklch(55.1% .027 264.364);
+    --color-gray-700: oklch(37.3% .034 259.733);
+    --color-gray-800: oklch(27.8% .033 256.848);
+    --color-black: #000;
+    --color-white: #fff;
+    --spacing: 0.25rem;
+    --container-sm: 24rem;
+    --container-md: 28rem;
+    --container-6xl: 72rem;
+    --text-xs: 0.75rem;
+    --text-xs--line-height: calc(1 / 0.75);
+    --text-sm: 0.875rem;
+    --text-sm--line-height: calc(1.25 / 0.875);
+    --text-base: 1rem;
+    --text-base--line-height: calc(1.5 / 1);
+    --text-lg: 1.125rem;
+    --text-lg--line-height: calc(1.75 / 1.125);
+    --text-2xl: 1.5rem;
+    --text-2xl--line-height: calc(2 / 1.5);
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --tracking-tight: -0.025em;
+    --tracking-wider: 0.05em;
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --animate-spin: spin 1s linear infinite;
+    --animate-ping: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+    --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    --blur-sm: 8px;
+    --default-transition-duration: 0.15s;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 
+ * Scope all drawer styles inside #git-branches-root
+ * This prevents any CSS from polluting WP admin or frontend styles
+ */
+#git-branches-root {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#git-branches-root *,
+#git-branches-root *::before,
+#git-branches-root *::after {
+    box-sizing: border-box;
+}
+
+#git-branches-root button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    outline: none;
+}
+
+#git-branches-root input {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    outline: none;
+    border: none;
+    background: none;
+    margin: 0;
+}
+
+#git-branches-root svg {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+#git-branches-root h2,
+#git-branches-root h3,
+#git-branches-root p,
+#git-branches-root span,
+#git-branches-root label,
+#git-branches-root div {
+    margin: 0;
+    padding: 0;
+}
+
+/* =============================================
+   Admin Bar Trigger — alignment & contrast fixes
+   ============================================= */
+#wpadminbar .qa-git-drawer-trigger>.ab-item {
+    display: flex !important;
+    align-items: center !important;
+    height: 32px !important;
+    padding: 0 10px !important;
+    color: #e0e0e0 !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+}
+
+#wpadminbar .qa-git-drawer-trigger>.ab-item:hover {
+    color: #72aee6 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+#wpadminbar .qa-git-drawer-trigger .qa-git-drawer-trigger-inner {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    line-height: 1 !important;
+}
+
+#wpadminbar .qa-git-drawer-trigger .qa-git-drawer-trigger-inner svg {
+    width: 16px !important;
+    height: 16px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    position: relative !important;
+    top: 0 !important;
+}
+
+#wpadminbar .qa-git-drawer-trigger .qa-git-drawer-label {
+    font-size: 13px !important;
+    line-height: 32px !important;
+    color: inherit !important;
+}
+
+/* =============================================
+   Scrollbar styling (scoped)
+   ============================================= */
+#git-branches-root .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+#git-branches-root .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#git-branches-root .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 3px;
+}
+
+#git-branches-root .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+/* =============================================
+   Toast animation
+   ============================================= */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Ensure drawer root has proper z-index stacking */
+#git-branches-root {
+    position: relative;
+    z-index: 100000;
+}

@@ -163,7 +163,7 @@ class GitManager
             $currentBranch = $this->getCurrentBranch($path, $force_refresh);
             $hasChanges = $repo->hasChanges();
             $branches = $this->getBranches($path, true, $force_refresh);
-            
+
             $status = [
                 'valid' => true,
                 'current_branch' => $currentBranch,
@@ -463,6 +463,146 @@ class GitManager
             return [
                 'success' => false,
                 'error' => 'Pull operation failed: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Stash uncommitted changes
+     *
+     * @param string $path Repository path
+     * @return array Operation result
+     */
+    public function stashChanges($path)
+    {
+        if (!$this->isGitRepository($path)) {
+            return [
+                'success' => false,
+                'error' => 'Not a Git repository'
+            ];
+        }
+
+        try {
+            $repo = $this->git->open($path);
+
+            if (!$repo->hasChanges()) {
+                return [
+                    'success' => false,
+                    'error' => 'No local changes to stash'
+                ];
+            }
+            $repo->execute(['stash', 'push', '-u', '-m', 'QA Assistant Auto-Stash before pull']);
+
+            // Invalidate cache
+            delete_transient('qa_assistant_repo_status_' . md5($path));
+
+            return [
+                'success' => true,
+                'message' => 'Changes stashed successfully'
+            ];
+
+        } catch (GitException $e) {
+            return [
+                'success' => false,
+                'error' => 'Stash operation failed: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Commit uncommitted changes
+     *
+     * @param string $path Repository path
+     * @param string $message Commit message
+     * @return array Operation result
+     */
+    public function commitChanges($path, $message)
+    {
+        if (!$this->isGitRepository($path)) {
+            return [
+                'success' => false,
+                'error' => 'Not a Git repository'
+            ];
+        }
+
+        if (empty(trim($message))) {
+            return [
+                'success' => false,
+                'error' => 'Commit message cannot be empty'
+            ];
+        }
+
+        try {
+            $repo = $this->git->open($path);
+
+            if (!$repo->hasChanges()) {
+                return [
+                    'success' => false,
+                    'error' => 'No local changes to commit'
+                ];
+            }
+
+            // Add all changes
+            $repo->execute(['add', '.']);
+
+            // Commit
+            $repo->execute(['commit', '-m', $message]);
+
+            // Invalidate cache
+            delete_transient('qa_assistant_repo_status_' . md5($path));
+
+            return [
+                'success' => true,
+                'message' => 'Changes committed successfully'
+            ];
+
+        } catch (GitException $e) {
+            return [
+                'success' => false,
+                'error' => 'Commit operation failed: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Clone a repository
+     *
+     * @param string $url Repository URL
+     * @param string $targetPath Target path to clone into
+     * @return array Operation result
+     */
+    public function cloneRepository($url, $targetPath)
+    {
+        // Basic validation
+        if (empty($url) || empty($targetPath)) {
+            return [
+                'success' => false,
+                'error' => 'Repository URL and target path are required'
+            ];
+        }
+
+        // Check if target directory already exists
+        if (file_exists($targetPath)) {
+            return [
+                'success' => false,
+                'error' => 'Target directory already exists. Please remove or rename it first.',
+                'target_exists' => true
+            ];
+        }
+
+        try {
+            // Clone the repository
+            $this->git->cloneRepository($url, $targetPath);
+
+            return [
+                'success' => true,
+                'message' => 'Repository successfully cloned',
+                'path' => $targetPath
+            ];
+        } catch (GitException $e) {
+            return [
+                'success' => false,
+                'error' => 'Clone failed: ' . $e->getMessage()
             ];
         }
     }

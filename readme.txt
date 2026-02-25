@@ -2,9 +2,9 @@
 Contributors: obayedmamur, nhrrob
 Tags: qa assistant, quality assurance, help, sqa helper tool
 Requires at least: 5.0
-Tested up to: 6.8
-Requires PHP: 7.4
-Stable tag: 1.0.3
+Tested up to: 6.9
+Requires PHP: 8.0
+Stable tag: 2.0.0
 License: GPLv3
 License URI: https://opensource.org/licenses/GPL-3.0
 
@@ -89,6 +89,28 @@ This plugin does NOT connect to any external services or APIs. All Git operation
 
 
 == Changelog ==
+
+= 2.0.0 - 25/02/2026 =
+
+**� Major Features & Enhancements:**
+- Added: Git Branches Drawer feature with new React components and admin bar integration
+- Added: Modal and backend logic to handle uncommitted changes during Git pull operations (commit or stash)
+- Added: Custom confirmation modal for plugin removal from the dashboard
+- Added: Plugin settings link added to the plugin list for easier access
+
+**🎨 UI/UX Improvements:**
+- Enhanced: Major UI revamp including a new notification system and animated skeleton loaders
+- Enhanced: Robust CSS isolation using PostCSS prefixing and inline Tailwind theme
+- Enhanced: Success button variant and improved Git branch item visuals
+
+**�🔒 Security & Code Quality:**
+- Added: PHPCS ignore annotations for correctly-prefixed global functions and classes
+- Refactored: Refined AJAX URL parsing and plugin data handling
+
+**⚙️ Compatibility:**
+- Updated: Minimum PHP requirement from 7.4 to 8.0 to match Composer dependency requirements
+- Updated: "Tested up to" WordPress version from 6.8 to 6.9
+- Added: Explicit PHP >= 8.0 constraint in `composer.json` for early validation
 
 = 1.0.3 - Initial Release =
 

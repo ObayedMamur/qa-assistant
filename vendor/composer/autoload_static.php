@@ -11,14 +11,14 @@ class ComposerStaticInit8774faad83d4b0e6eec12f60e6650f9a
     );
 
     public static $prefixLengthsPsr4 = array (
-        'Q' => 
+        'Q' =>
         array (
             'QaAssistant\\' => 12,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'QaAssistant\\' => 
+        'QaAssistant\\' =>
         array (
             0 => __DIR__ . '/../..' . '/includes',
         ),
@@ -42,16 +42,6 @@ class ComposerStaticInit8774faad83d4b0e6eec12f60e6650f9a
         'CzProject\\GitPhp\\Runners\\MemoryRunner' => __DIR__ . '/..' . '/czproject/git-php/src/Runners/MemoryRunner.php',
         'CzProject\\GitPhp\\Runners\\OldGitRunner' => __DIR__ . '/..' . '/czproject/git-php/src/Runners/OldGitRunner.php',
         'CzProject\\GitPhp\\StaticClassException' => __DIR__ . '/..' . '/czproject/git-php/src/exceptions.php',
-        'QaAssistant\\API' => __DIR__ . '/../..' . '/includes/API.php',
-        'QaAssistant\\Admin' => __DIR__ . '/../..' . '/includes/Admin.php',
-        'QaAssistant\\Admin\\Menu' => __DIR__ . '/../..' . '/includes/Admin/Menu.php',
-        'QaAssistant\\Admin\\Settings' => __DIR__ . '/../..' . '/includes/Admin/Settings.php',
-        'QaAssistant\\Ajax' => __DIR__ . '/../..' . '/includes/Ajax.php',
-        'QaAssistant\\Assets' => __DIR__ . '/../..' . '/includes/Assets.php',
-        'QaAssistant\\Frontend' => __DIR__ . '/../..' . '/includes/Frontend.php',
-        'QaAssistant\\Frontend\\Shortcode' => __DIR__ . '/../..' . '/includes/Frontend/Shortcode.php',
-        'QaAssistant\\GitManager' => __DIR__ . '/../..' . '/includes/GitManager.php',
-        'QaAssistant\\Installer' => __DIR__ . '/../..' . '/includes/Installer.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
