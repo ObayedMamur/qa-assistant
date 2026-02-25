@@ -3,7 +3,7 @@ Contributors: obayedmamur, nhrrob
 Tags: qa assistant, quality assurance, help, sqa helper tool
 Requires at least: 5.0
 Tested up to: 6.9
-Requires PHP: 7.4
+Requires PHP: 8.0
 Stable tag: 1.0.3
 License: GPLv3
 License URI: https://opensource.org/licenses/GPL-3.0
