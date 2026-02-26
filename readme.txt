@@ -4,7 +4,7 @@ Tags: qa assistant, quality assurance, help, sqa helper tool
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 License: GPLv3
 License URI: https://opensource.org/licenses/GPL-3.0
 
@@ -89,6 +89,11 @@ This plugin does NOT connect to any external services or APIs. All Git operation
 
 
 == Changelog ==
+
+= 2.0.2 - 26/02/2026 =
+
+**🔧 Technical Fixes:**
+- Fixed: Resolved an issue causing a blank plugin settings dashboard due to a JavaScript race condition on DOM elements.
 
 = 2.0.1 - 26/02/2026 =
 
