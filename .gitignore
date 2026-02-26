@@ -41,7 +41,7 @@ temp/
 
 # Build files
 dist/
-build/
+# build/
 
 # WordPress specific
 wp-config.php
