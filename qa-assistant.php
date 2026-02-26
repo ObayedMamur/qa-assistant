@@ -3,7 +3,7 @@
 Plugin Name: QA Assistant
 Plugin URI: https://obayedmamur.com/qa-assistant
 Description: A comprehensive tool for SQA Engineers with GitHub Desktop-like Git branch switching functionality.
-Version: 2.0.2
+Version: 2.0.3
 Author: Obayed Mamur
 Author URI: https://obayedmamur.com
 License: GPLv3
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('QA_ASSISTANT_VERSION', '2.0.2');
+define('QA_ASSISTANT_VERSION', '2.0.3');
 define('QA_ASSISTANT_PLUGIN_FILE', __FILE__);
 define('QA_ASSISTANT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('QA_ASSISTANT_PLUGIN_URL', plugin_dir_url(__FILE__));
