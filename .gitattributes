@@ -84,7 +84,7 @@ BUILD.md export-ignore
 WORKFLOWS.md export-ignore
 *.md export-ignore
 node_modules/ export-ignore
-vendor/ export-ignore
+# vendor/ export-ignore
 composer.json export-ignore
 composer.lock export-ignore
 package.json export-ignore
