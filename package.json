@@ -1,6 +1,6 @@
 {
   "name": "qa-assistant",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "description": "A comprehensive tool for SQA Engineers with GitHub Desktop-like Git branch switching functionality.",
   "main": "build/index.js",
   "scripts": {
