@@ -178,9 +178,8 @@ class Assets
     public function register_dashboard_assets($hook)
     {
         // Only load on QA Assistant page.
-        // WordPress generates 'admin_page_{slug}' for submenus added under tools.php,
-        // not 'tools_page_{slug}'.
-        if ($hook !== 'admin_page_qa-assistant') {
+        // WordPress generates 'tools_page_{slug}' for submenus added under tools.php.
+        if ($hook !== 'tools_page_qa-assistant') {
             return;
         }
 
