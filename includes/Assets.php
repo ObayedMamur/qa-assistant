@@ -30,6 +30,22 @@ class Assets
     }
 
     /**
+     * Return a cache-busting version string for an asset file.
+     * Uses the plugin version constant in production to avoid syscalls.
+     * Falls back to filemtime() in WP_DEBUG mode for local development.
+     *
+     * @param string $file_path Absolute path to the asset file
+     * @return string Version string
+     */
+    private function get_asset_version(string $file_path): string
+    {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            return (string) @filemtime($file_path);
+        }
+        return QA_ASSISTANT_VERSION;
+    }
+
+    /**
      * All available scripts
      *
      * @return array
@@ -38,35 +54,20 @@ class Assets
     {
         return [
             'qa-assistant-script' => [
-                'src' => QA_ASSISTANT_ASSETS . '/js/frontend.js',
-                'version' => filemtime(QA_ASSISTANT_PATH . '/assets/js/frontend.js'),
-                'deps' => ['jquery']
+                'src'     => QA_ASSISTANT_ASSETS . '/js/frontend.js',
+                'version' => $this->get_asset_version(QA_ASSISTANT_PATH . '/assets/js/frontend.js'),
+                'deps'    => ['jquery']
             ],
             'qa-assistant-admin-script' => [
-                'src' => QA_ASSISTANT_ASSETS . '/js/admin.js',
-                'version' => filemtime(QA_ASSISTANT_PATH . '/assets/js/admin.js'),
-                'deps' => ['jquery', 'wp-util']
+                'src'     => QA_ASSISTANT_ASSETS . '/js/admin.js',
+                'version' => $this->get_asset_version(QA_ASSISTANT_PATH . '/assets/js/admin.js'),
+                'deps'    => ['jquery', 'wp-util']
             ],
             'qa-assistant-select2-script' => [
-                'src' => QA_ASSISTANT_ASSETS . '/js/select2.min.js',
-                'version' => filemtime(QA_ASSISTANT_PATH . '/assets/js/select2.min.js'),
-                'deps' => ['jquery']
+                'src'     => QA_ASSISTANT_ASSETS . '/js/select2.min.js',
+                'version' => $this->get_asset_version(QA_ASSISTANT_PATH . '/assets/js/select2.min.js'),
+                'deps'    => ['jquery']
             ],
-            // 'qa-assistant-bootstrap-script' => [
-            //     'src'     => QA_ASSISTANT_ASSETS . '/js/bootstrap.min.js',
-            //     'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/bootstrap.min.js' ),
-            //     'deps'    => [ 'jquery']
-            // ],
-            // 'qa-assistant-jquery-slim-script' => [
-            //     'src'     => QA_ASSISTANT_ASSETS . '/js/jquery-3.7.1.slim.min.js',
-            //     'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/jquery-3.7.1.slim.min.js' ),
-            //     'deps'    => [ 'jquery']
-            // ],
-            // 'qa-assistant-popper-js-script' => [
-            //     'src'     => QA_ASSISTANT_ASSETS . '/js/popper.min.js',
-            //     'version' => filemtime( QA_ASSISTANT_PATH . '/assets/js/popper.min.js' ),
-            //     'deps'    => [ 'jquery']
-            // ],
         ];
     }
 
@@ -79,21 +80,17 @@ class Assets
     {
         return [
             'qa-assistant-style' => [
-                'src' => QA_ASSISTANT_ASSETS . '/css/frontend.css',
-                'version' => filemtime(QA_ASSISTANT_PATH . '/assets/css/frontend.css')
+                'src'     => QA_ASSISTANT_ASSETS . '/css/frontend.css',
+                'version' => $this->get_asset_version(QA_ASSISTANT_PATH . '/assets/css/frontend.css')
             ],
             'qa-assistant-admin-style' => [
-                'src' => QA_ASSISTANT_ASSETS . '/css/admin.css',
-                'version' => filemtime(QA_ASSISTANT_PATH . '/assets/css/admin.css')
+                'src'     => QA_ASSISTANT_ASSETS . '/css/admin.css',
+                'version' => $this->get_asset_version(QA_ASSISTANT_PATH . '/assets/css/admin.css')
             ],
             'qa-assistant-select2-style' => [
-                'src' => QA_ASSISTANT_ASSETS . '/css/select2.min.css',
-                'version' => filemtime(QA_ASSISTANT_PATH . '/assets/css/select2.min.css')
+                'src'     => QA_ASSISTANT_ASSETS . '/css/select2.min.css',
+                'version' => $this->get_asset_version(QA_ASSISTANT_PATH . '/assets/css/select2.min.css')
             ],
-            // 'qa-assistant-bootstrap-style' => [
-            //     'src'     => QA_ASSISTANT_ASSETS . '/css/bootstrap.min.css',
-            //     'version' => filemtime( QA_ASSISTANT_PATH . '/assets/css/bootstrap.min.css' )
-            // ],
         ];
     }
 
@@ -156,15 +153,15 @@ class Assets
     {
         if (!is_admin() && is_admin_bar_showing()) {
             // Enqueue styles/scripts needed for the admin bar dropdown
-            wp_enqueue_style('qa-assistant-admin-style', QA_ASSISTANT_ASSETS . '/css/admin.css', [], filemtime(QA_ASSISTANT_PATH . '/assets/css/admin.css'));
-            wp_enqueue_style('qa-assistant-select2-style', QA_ASSISTANT_ASSETS . '/css/select2.min.css', [], filemtime(QA_ASSISTANT_PATH . '/assets/css/select2.min.css'));
-            wp_enqueue_script('qa-assistant-select2-script', QA_ASSISTANT_ASSETS . '/js/select2.min.js', ['jquery'], filemtime(QA_ASSISTANT_PATH . '/assets/js/select2.min.js'), true);
-            wp_enqueue_script('qa-assistant-admin-script', QA_ASSISTANT_ASSETS . '/js/admin.js', ['jquery', 'wp-util'], filemtime(QA_ASSISTANT_PATH . '/assets/js/admin.js'), true);
+            wp_enqueue_style('qa-assistant-admin-style', QA_ASSISTANT_ASSETS . '/css/admin.css', [], $this->get_asset_version(QA_ASSISTANT_PATH . '/assets/css/admin.css'));
+            wp_enqueue_style('qa-assistant-select2-style', QA_ASSISTANT_ASSETS . '/css/select2.min.css', [], $this->get_asset_version(QA_ASSISTANT_PATH . '/assets/css/select2.min.css'));
+            wp_enqueue_script('qa-assistant-select2-script', QA_ASSISTANT_ASSETS . '/js/select2.min.js', ['jquery'], $this->get_asset_version(QA_ASSISTANT_PATH . '/assets/js/select2.min.js'), true);
+            wp_enqueue_script('qa-assistant-admin-script', QA_ASSISTANT_ASSETS . '/js/admin.js', ['jquery', 'wp-util'], $this->get_asset_version(QA_ASSISTANT_PATH . '/assets/js/admin.js'), true);
             // Localize script for AJAX and nonce
             wp_localize_script('qa-assistant-admin-script', 'qaAssistant', [
-                'nonce' => wp_create_nonce('qa-assistant-admin-nonce'),
+                'nonce'   => wp_create_nonce('qa-assistant-admin-nonce'),
                 'confirm' => __('Are you sure?', 'qa-assistant'),
-                'error' => __('Something went wrong', 'qa-assistant'),
+                'error'   => __('Something went wrong', 'qa-assistant'),
                 'ajaxUrl' => admin_url('admin-ajax.php'),
             ]);
         }

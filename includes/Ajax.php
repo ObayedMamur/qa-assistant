@@ -25,8 +25,10 @@ class Ajax
 
     /**
      * Class constructor
+     *
+     * @param GitManager $gitManager Shared GitManager instance
      */
-    function __construct()
+    function __construct(GitManager $gitManager)
     {
         // Branch switching
         add_action('wp_ajax_qa_assistant_switch_branch', [$this, 'switch_branch']);
@@ -69,7 +71,7 @@ class Ajax
         add_action('wp_ajax_qa_assistant_get_activity_logs', [$this, 'get_activity_logs']);
         add_action('wp_ajax_qa_assistant_clear_activity_logs', [$this, 'clear_activity_logs']);
 
-        $this->gitManager = new GitManager();
+        $this->gitManager = $gitManager;
     }
 
     /**
@@ -77,8 +79,11 @@ class Ajax
      */
     public function get_git_plugins()
     {
-        // Verify nonce usually, but for initial fetch we might just check permissions
-        // or use the common admin nonce
+        // Verify nonce — consistent with all other handlers in this class
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
+            wp_send_json_error(['message' => 'Security check failed.']);
+        }
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Unauthorized']);
         }
@@ -718,16 +723,8 @@ class Ajax
             $currentBranch = $this->gitManager->getCurrentBranch($path);
             $alias = isset($settings['alias']) && !empty($settings['alias']) ? $settings['alias'] : $slug;
 
-            // Check for uncommitted changes
-            $hasChanges = false;
-            try {
-                $status = $this->gitManager->getRepositoryStatus($path);
-                if (!empty($status['has_changes'])) {
-                    $hasChanges = true;
-                }
-            } catch (\Exception $e) {
-                // Silently continue if status check fails
-            }
+            // Use dedicated cached method — avoids triggering getBranches() or git fetch
+            $hasChanges = $this->gitManager->hasUncommittedChanges($path);
 
             // Get last pulled time from transient
             $lastPulled = get_transient('qa_assistant_last_pulled_' . md5($path));
@@ -784,16 +781,8 @@ class Ajax
         $branches = $this->gitManager->getBranches($path, false);
         $currentBranch = $this->gitManager->getCurrentBranch($path) ?: '';
 
-        // Check for uncommitted changes
-        $hasChanges = false;
-        try {
-            $status = $this->gitManager->getRepositoryStatus($path);
-            if (!empty($status['has_changes'])) {
-                $hasChanges = true;
-            }
-        } catch (\Exception $e) {
-            // Silently continue
-        }
+        // Check for uncommitted changes — use cached method, avoids git fetch
+        $hasChanges = $this->gitManager->hasUncommittedChanges($path);
 
         // Get last pulled time
         $lastPulled = get_transient('qa_assistant_last_pulled_' . md5($path));

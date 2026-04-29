@@ -2,15 +2,7 @@ import React, { useEffect } from 'react';
 import { GitBranch, Folder, AlertCircle, Clock } from 'lucide-react';
 import { useDrawer } from '../context/DrawerContext';
 import LoadingSpinner from './LoadingSpinner';
-
-function timeAgo(timestamp) {
-    if (!timestamp) return null;
-    const seconds = Math.floor(Date.now() / 1000 - timestamp);
-    if (seconds < 60) return 'now';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
-    return `${Math.floor(seconds / 86400)}d`;
-}
+import { timeAgo } from '../utils/time';
 
 export default function RepositoryList() {
     const { state, dispatch, loadRepositories, loadBranches } = useDrawer();

@@ -6,16 +6,10 @@ import SearchInput from './SearchInput';
 import LoadingSpinner from './LoadingSpinner';
 
 export default function BranchList() {
-    const { state, loadBranches, doSwitchBranch } = useDrawer();
+    const { state, doSwitchBranch } = useDrawer();
     const { selectedRepository, branches, currentBranch, hasChanges, loading, searchQuery } = state;
 
     const debouncedQuery = useDebounce(searchQuery, 300);
-
-    useEffect(() => {
-        if (selectedRepository && branches.length === 0 && !loading.branches) {
-            loadBranches(selectedRepository.slug);
-        }
-    }, [selectedRepository?.slug]);
 
     const filteredBranches = useMemo(() => {
         if (!debouncedQuery.trim()) return branches;

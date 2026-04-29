@@ -162,7 +162,9 @@ class GitManager
             $repo = $this->git->open($path);
             $currentBranch = $this->getCurrentBranch($path, $force_refresh);
             $hasChanges = $repo->hasChanges();
-            $branches = $this->getBranches($path, true, $force_refresh);
+            // Use fetch=false: status checks only need local branch data;
+            // the user explicitly triggers a Fetch for remote sync.
+            $branches = $this->getBranches($path, false, $force_refresh);
 
             $status = [
                 'valid' => true,
@@ -201,12 +203,25 @@ class GitManager
         try {
             $repo = $this->git->open($path);
 
-            // Fetch latest branches and validate branch exists
-            $branches = $this->getBranches($path, true, true); // Force refresh on switch attempt
-            if (!in_array($branch, $branches)) {
+            // Fast existence check using rev-parse — checks local and origin/ refs.
+            // Avoids a blocking git fetch --all --prune just to validate the branch.
+            $branchExists = false;
+            try {
+                $repo->execute(['rev-parse', '--verify', $branch]);
+                $branchExists = true;
+            } catch (GitException $e) {
+                try {
+                    $repo->execute(['rev-parse', '--verify', "origin/{$branch}"]);
+                    $branchExists = true;
+                } catch (GitException $e2) {
+                    // Branch not found locally or on origin
+                }
+            }
+
+            if (!$branchExists) {
                 return [
                     'success' => false,
-                    'error' => "Branch '{$branch}' does not exist. Try refreshing to see latest branches."
+                    'error' => "Branch '{$branch}' does not exist. Try refreshing (Fetch) to see latest branches."
                 ];
             }
 
@@ -257,6 +272,7 @@ class GitManager
             delete_transient('qa_assistant_current_branch_' . md5($path));
             delete_transient('qa_assistant_branches_' . md5($path));
             delete_transient('qa_assistant_repo_status_' . md5($path));
+            delete_transient('qa_assistant_has_changes_' . md5($path));
 
             return [
                 'success' => true,
@@ -451,6 +467,7 @@ class GitManager
             delete_transient('qa_assistant_current_branch_' . md5($path));
             delete_transient('qa_assistant_branches_' . md5($path));
             delete_transient('qa_assistant_repo_status_' . md5($path));
+            delete_transient('qa_assistant_has_changes_' . md5($path));
 
             return [
                 'success' => true,
@@ -495,6 +512,7 @@ class GitManager
 
             // Invalidate cache
             delete_transient('qa_assistant_repo_status_' . md5($path));
+            delete_transient('qa_assistant_has_changes_' . md5($path));
 
             return [
                 'success' => true,
@@ -550,6 +568,7 @@ class GitManager
 
             // Invalidate cache
             delete_transient('qa_assistant_repo_status_' . md5($path));
+            delete_transient('qa_assistant_has_changes_' . md5($path));
 
             return [
                 'success' => true,
@@ -604,6 +623,38 @@ class GitManager
                 'success' => false,
                 'error' => 'Clone failed: ' . $e->getMessage()
             ];
+        }
+    }
+
+    /**
+     * Check whether a repository has uncommitted changes.
+     * Caches result for 60 seconds to avoid repeated subprocess calls.
+     *
+     * @param string $path      Repository path
+     * @param bool   $force_refresh Bypass cache when true
+     * @return bool  True if there are uncommitted changes, false otherwise
+     */
+    public function hasUncommittedChanges($path, $force_refresh = false)
+    {
+        if (!$this->isGitRepository($path)) {
+            return false;
+        }
+
+        $cache_key = 'qa_assistant_has_changes_' . md5($path);
+        $cached = get_transient($cache_key);
+
+        if ($cached !== false && !$force_refresh) {
+            return (bool) $cached;
+        }
+
+        try {
+            $repo = $this->git->open($path);
+            $hasChanges = $repo->hasChanges();
+            // Store as '1'/'0' — transient false means cache miss, not "no changes"
+            set_transient($cache_key, $hasChanges ? '1' : '0', 60);
+            return $hasChanges;
+        } catch (GitException $e) {
+            return false;
         }
     }
 }

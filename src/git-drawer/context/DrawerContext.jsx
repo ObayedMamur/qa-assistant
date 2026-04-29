@@ -29,7 +29,7 @@ function reducer(state, action) {
         case 'OPEN_DRAWER':
             return { ...state, isOpen: true };
         case 'CLOSE_DRAWER':
-            return { ...initialState, repositories: state.repositories };
+            return { ...initialState };
         case 'SET_REPOSITORIES':
             return { ...state, repositories: action.payload };
         case 'SELECT_REPOSITORY': {
@@ -100,9 +100,17 @@ export function DrawerProvider({ children }) {
             const res = await api.fetchRepositories();
             if (res.success) {
                 dispatch({ type: 'SET_REPOSITORIES', payload: res.data.repositories });
-                // Auto-select first repo if available
+                // Auto-select first repo if available and nothing is selected
                 if (res.data.repositories.length > 0) {
-                    dispatch({ type: 'SELECT_REPOSITORY', payload: res.data.repositories[0] });
+                    if (!state.selectedRepository) {
+                        dispatch({ type: 'SELECT_REPOSITORY', payload: res.data.repositories[0] });
+                    } else {
+                        // Keep current selection if it still exists in the refreshed list
+                        const stillExists = res.data.repositories.find(r => r.slug === state.selectedRepository.slug);
+                        if (!stillExists) {
+                            dispatch({ type: 'SELECT_REPOSITORY', payload: res.data.repositories[0] });
+                        }
+                    }
                 }
             } else {
                 dispatch({ type: 'SET_ERROR', payload: res.data?.message || 'Failed to load repositories' });
