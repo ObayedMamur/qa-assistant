@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useReducer, useCallback, useRef, useEffect } from 'react';
 import * as api from '../utils/api';
 
+let _toastId = 0;
+
 const DrawerContext = createContext(null);
 
 const initialState = {
@@ -106,7 +108,7 @@ export function DrawerProvider({ children }) {
     useEffect(() => { stateRef.current = state; });
 
     const addToast = useCallback((message, type = 'info') => {
-        const id = Date.now();
+        const id = ++_toastId;
         dispatch({ type: 'ADD_TOAST', payload: { id, message, type } });
         setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 4000);
     }, []);
@@ -222,9 +224,13 @@ export function DrawerProvider({ children }) {
             const res = await api.fetchRepo(pluginDir);
             if (res.success) {
                 addToast(`Fetched ${res.data.branches.length} branches`, 'success');
+                // refresh_branches returns plain strings; normalize to {name, age} shape
+                const normalized = res.data.branches.map(b =>
+                    typeof b === 'string' ? { name: b, age: 0 } : b
+                );
                 dispatch({
                     type: 'SET_BRANCHES',
-                    payload: { branchMeta: res.data.branches, currentBranch: res.data.current_branch },
+                    payload: { branchMeta: normalized, currentBranch: res.data.current_branch },
                 });
             } else {
                 addToast(res.data?.message || 'Fetch failed', 'error');

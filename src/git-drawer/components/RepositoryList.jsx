@@ -9,10 +9,10 @@ export default function RepositoryList() {
     const { repositories, selectedRepository, loading } = state;
 
     useEffect(() => {
-        if (state.isOpen && repositories.length === 0) {
+        if (state.isOpen && repositories.length === 0 && !loading.repos) {
             loadRepositories();
         }
-    }, [state.isOpen, repositories.length, loadRepositories]);
+    }, [state.isOpen, repositories.length, loading.repos, loadRepositories]);
 
     const handleSelect = (repo) => {
         dispatch({ type: 'SELECT_REPOSITORY', payload: repo });
