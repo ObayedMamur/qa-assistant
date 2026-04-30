@@ -185,7 +185,7 @@ class GitManager
                 if (strpos($name, 'origin/') === 0) {
                     $name = substr($name, strlen('origin/'));
                 }
-                if ($name === 'HEAD' || empty($name)) continue;
+                if ($name === 'HEAD' || str_ends_with($name, '/HEAD') || empty($name)) continue;
 
                 // First occurrence wins (local branch before remote)
                 if (!isset($seen[$name])) {

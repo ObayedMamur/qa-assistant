@@ -30,6 +30,8 @@ class Ajax
      */
     function __construct(GitManager $gitManager)
     {
+        $this->gitManager = $gitManager;
+
         // Branch switching
         add_action('wp_ajax_qa_assistant_switch_branch', [$this, 'switch_branch']);
 
@@ -80,8 +82,6 @@ class Ajax
 
         // General settings
         add_action('wp_ajax_qa_assistant_save_general_settings', [$this, 'save_general_settings']);
-
-        $this->gitManager = $gitManager;
     }
 
     /**
@@ -892,8 +892,12 @@ class Ajax
             'user' => wp_get_current_user()->display_name,
         ]);
 
-        // Keep only the last 100 entries
-        $logs = array_slice($logs, 0, 100);
+        // Keep only the configured number of entries
+        $settings  = get_option('qa_assistant_settings', []);
+        $settings  = maybe_unserialize($settings);
+        $retention = (is_array($settings) && isset($settings['log_retention'])) ? intval($settings['log_retention']) : 100;
+        $retention = in_array($retention, [50, 100, 250, 500], true) ? $retention : 100;
+        $logs      = array_slice($logs, 0, $retention);
         update_option('qa_assistant_activity_log', $logs, false);
     }
 
@@ -1004,7 +1008,7 @@ class Ajax
         foreach ($plugin_dirs as $slug) {
             $path = qa_assistant_get_plugin_path(sanitize_text_field($slug));
             if (!is_dir($path) || !$this->gitManager->isGitRepository($path)) {
-                $results[] = ['slug' => $slug, 'success' => false, 'message' => 'Not a git repo'];
+                $results[] = ['slug' => sanitize_text_field($slug), 'success' => false, 'message' => 'Not a git repo'];
                 continue;
             }
             $res = $this->gitManager->pullCurrentBranch($path);
@@ -1044,7 +1048,7 @@ class Ajax
         foreach ($plugin_dirs as $slug) {
             $path = qa_assistant_get_plugin_path(sanitize_text_field($slug));
             if (!is_dir($path) || !$this->gitManager->isGitRepository($path)) {
-                $results[] = ['slug' => $slug, 'success' => false, 'message' => 'Not a git repo'];
+                $results[] = ['slug' => sanitize_text_field($slug), 'success' => false, 'message' => 'Not a git repo'];
                 continue;
             }
             $res = $this->gitManager->refreshBranches($path);
