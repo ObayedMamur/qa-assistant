@@ -147,6 +147,60 @@ class GitManager
     }
 
     /**
+     * Get branches with last-commit metadata.
+     * Returns array of ['name' => string, 'age' => int (unix timestamp of last commit)].
+     *
+     * @param string $path Repository path
+     * @return array
+     */
+    public function getBranchesWithMeta($path)
+    {
+        if (!$this->isGitRepository($path)) {
+            return [];
+        }
+
+        try {
+            $repo = $this->git->open($path);
+            // format: <branch-name>\t<unix-timestamp>
+            $output = $repo->execute([
+                'for-each-ref',
+                '--sort=-committerdate',
+                '--format=%(refname:short)\t%(committerdate:unix)',
+                'refs/heads',
+                'refs/remotes/origin',
+            ]);
+
+            $seen = [];
+            $result = [];
+
+            foreach ($output as $line) {
+                $line = trim($line);
+                if (empty($line)) continue;
+
+                $parts = explode("\t", $line, 2);
+                $name  = isset($parts[0]) ? trim($parts[0]) : '';
+                $ts    = isset($parts[1]) ? (int) trim($parts[1]) : 0;
+
+                // Strip "origin/" prefix from remote refs
+                if (strpos($name, 'origin/') === 0) {
+                    $name = substr($name, strlen('origin/'));
+                }
+                if ($name === 'HEAD' || empty($name)) continue;
+
+                // First occurrence wins (local branch before remote)
+                if (!isset($seen[$name])) {
+                    $seen[$name] = true;
+                    $result[] = ['name' => sanitize_text_field($name), 'age' => $ts];
+                }
+            }
+
+            return $result;
+        } catch (GitException $e) {
+            return [];
+        }
+    }
+
+    /**
      * Get repository status
      *
      * @param string $path Repository path

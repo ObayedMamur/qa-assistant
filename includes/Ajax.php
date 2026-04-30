@@ -71,6 +71,16 @@ class Ajax
         add_action('wp_ajax_qa_assistant_get_activity_logs', [$this, 'get_activity_logs']);
         add_action('wp_ajax_qa_assistant_clear_activity_logs', [$this, 'clear_activity_logs']);
 
+        // Bulk operations
+        add_action('wp_ajax_qa_assistant_pull_all_repos',  [$this, 'pull_all_repos']);
+        add_action('wp_ajax_qa_assistant_fetch_all_repos', [$this, 'fetch_all_repos']);
+
+        // Performance settings
+        add_action('wp_ajax_qa_assistant_save_performance_settings', [$this, 'save_performance_settings']);
+
+        // General settings
+        add_action('wp_ajax_qa_assistant_save_general_settings', [$this, 'save_general_settings']);
+
         $this->gitManager = $gitManager;
     }
 
@@ -777,25 +787,49 @@ class Ajax
             wp_send_json_error(['message' => 'Plugin directory does not exist.']);
         }
 
-        // Get branches without fetching from remote (fast, no blocking)
-        $branches = $this->gitManager->getBranches($path, false);
+        // Get branches with metadata (name + last-commit age)
+        $branchMeta = $this->gitManager->getBranchesWithMeta($path);
         $currentBranch = $this->gitManager->getCurrentBranch($path) ?: '';
 
-        // Check for uncommitted changes — use cached method, avoids git fetch
-        $hasChanges = $this->gitManager->hasUncommittedChanges($path);
+        // Build plain name list for legacy sorting
+        $branchNames = array_column($branchMeta, 'name');
+        $branchNames = $this->sort_branches_for_drawer($branchNames, $currentBranch);
 
-        // Get last pulled time
+        // Re-index meta by name for O(1) lookup, preserving sorted order
+        $metaByName = [];
+        foreach ($branchMeta as $m) {
+            $metaByName[$m['name']] = $m['age'];
+        }
+
+        // Build sorted meta array
+        $sortedMeta = [];
+        foreach ($branchNames as $bn) {
+            $sortedMeta[] = [
+                'name' => sanitize_text_field($bn),
+                'age'  => isset($metaByName[$bn]) ? intval($metaByName[$bn]) : 0,
+            ];
+        }
+
+        // If getBranchesWithMeta returned nothing, fall back to plain names
+        if (empty($sortedMeta)) {
+            $plain = $this->sort_branches_for_drawer(
+                $this->gitManager->getBranches($path, false),
+                $currentBranch
+            );
+            foreach ($plain as $bn) {
+                $sortedMeta[] = ['name' => sanitize_text_field($bn), 'age' => 0];
+            }
+        }
+
+        $hasChanges = $this->gitManager->hasUncommittedChanges($path);
         $lastPulled = get_transient('qa_assistant_last_pulled_' . md5($path));
 
-        // Sort branches: master/main → develop → current → others
-        $branches = $this->sort_branches_for_drawer($branches, $currentBranch);
-
         wp_send_json_success([
-            'branches' => array_map('sanitize_text_field', $branches),
+            'branches'      => $sortedMeta,
             'currentBranch' => sanitize_text_field($currentBranch),
-            'plugin_dir' => sanitize_text_field($plugin_dir),
-            'hasChanges' => $hasChanges,
-            'lastPulled' => $lastPulled ? intval($lastPulled) : null,
+            'plugin_dir'    => sanitize_text_field($plugin_dir),
+            'hasChanges'    => $hasChanges,
+            'lastPulled'    => $lastPulled ? intval($lastPulled) : null,
         ]);
     }
 
@@ -947,5 +981,146 @@ class Ajax
 
         update_option('qa_assistant_activity_log', [], false);
         wp_send_json_success(['message' => 'Activity logs cleared.']);
+    }
+
+    /**
+     * Pull latest changes for all monitored repositories.
+     */
+    public function pull_all_repos()
+    {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
+            wp_send_json_error(['message' => 'Security check failed.']);
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized.']);
+        }
+
+        $qa_settings = get_option('qa_assistant_settings', []);
+        $qa_settings  = maybe_unserialize($qa_settings);
+        $plugin_dirs  = (is_array($qa_settings) && isset($qa_settings['selected_plugins']))
+            ? array_keys($qa_settings['selected_plugins']) : [];
+
+        $results = [];
+        foreach ($plugin_dirs as $slug) {
+            $path = qa_assistant_get_plugin_path(sanitize_text_field($slug));
+            if (!is_dir($path) || !$this->gitManager->isGitRepository($path)) {
+                $results[] = ['slug' => $slug, 'success' => false, 'message' => 'Not a git repo'];
+                continue;
+            }
+            $res = $this->gitManager->pullCurrentBranch($path);
+            if ($res['success']) {
+                set_transient('qa_assistant_last_pulled_' . md5($path), time(), DAY_IN_SECONDS);
+                $this->log_activity('pull', $slug, $res['branch'], 'success', 'Pulled latest changes');
+            }
+            $results[] = [
+                'slug'    => sanitize_text_field($slug),
+                'success' => $res['success'],
+                'branch'  => sanitize_text_field($res['branch'] ?? ''),
+                'message' => sanitize_text_field($res['message'] ?? $res['error'] ?? ''),
+            ];
+        }
+
+        wp_send_json_success(['results' => $results]);
+    }
+
+    /**
+     * Fetch all branches for all monitored repositories.
+     */
+    public function fetch_all_repos()
+    {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
+            wp_send_json_error(['message' => 'Security check failed.']);
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized.']);
+        }
+
+        $qa_settings = get_option('qa_assistant_settings', []);
+        $qa_settings  = maybe_unserialize($qa_settings);
+        $plugin_dirs  = (is_array($qa_settings) && isset($qa_settings['selected_plugins']))
+            ? array_keys($qa_settings['selected_plugins']) : [];
+
+        $results = [];
+        foreach ($plugin_dirs as $slug) {
+            $path = qa_assistant_get_plugin_path(sanitize_text_field($slug));
+            if (!is_dir($path) || !$this->gitManager->isGitRepository($path)) {
+                $results[] = ['slug' => $slug, 'success' => false, 'message' => 'Not a git repo'];
+                continue;
+            }
+            $res = $this->gitManager->refreshBranches($path);
+            $results[] = [
+                'slug'    => sanitize_text_field($slug),
+                'success' => $res['success'],
+                'count'   => count($res['branches'] ?? []),
+                'message' => sanitize_text_field($res['message'] ?? $res['error'] ?? ''),
+            ];
+        }
+
+        wp_send_json_success(['results' => $results]);
+    }
+
+    /**
+     * Save performance settings (Branch Cache TTL, Log Retention).
+     */
+    public function save_performance_settings()
+    {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
+            wp_send_json_error(['message' => 'Security check failed.']);
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized.']);
+        }
+
+        $cache_ttl    = intval(wp_unslash($_POST['cache_ttl'] ?? 0));
+        $log_retention = intval(wp_unslash($_POST['log_retention'] ?? 100));
+
+        $valid_ttl       = [0, 60, 300, 900];
+        $valid_retention = [50, 100, 250, 500];
+        if (!in_array($cache_ttl, $valid_ttl, true))          { $cache_ttl = 0; }
+        if (!in_array($log_retention, $valid_retention, true)) { $log_retention = 100; }
+
+        $settings = get_option('qa_assistant_settings', []);
+        $settings  = maybe_unserialize($settings);
+        if (!is_array($settings)) { $settings = []; }
+
+        $settings['cache_ttl']     = $cache_ttl;
+        $settings['log_retention'] = $log_retention;
+        update_option('qa_assistant_settings', $settings);
+
+        wp_send_json_success(['message' => 'Performance settings saved.']);
+    }
+
+    /**
+     * Save a single general setting (toggle or select).
+     */
+    public function save_general_settings()
+    {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'qa-assistant-admin-nonce')) {
+            wp_send_json_error(['message' => 'Security check failed.']);
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized.']);
+        }
+
+        $key   = sanitize_key(wp_unslash($_POST['key'] ?? ''));
+        $value = sanitize_text_field(wp_unslash($_POST['value'] ?? ''));
+
+        $allowed_keys = ['show_in_admin_bar', 'show_branch_badges', 'notify_on_pull', 'toast_duration'];
+        if (!in_array($key, $allowed_keys, true)) {
+            wp_send_json_error(['message' => 'Unknown setting key.']);
+        }
+
+        $settings = get_option('qa_assistant_settings', []);
+        $settings  = maybe_unserialize($settings);
+        if (!is_array($settings)) { $settings = []; }
+
+        if (in_array($key, ['show_in_admin_bar', 'show_branch_badges', 'notify_on_pull'], true)) {
+            $settings[$key] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        } else {
+            $settings[$key] = intval($value);
+        }
+
+        update_option('qa_assistant_settings', $settings);
+        wp_send_json_success(['message' => 'Setting saved.']);
     }
 }
