@@ -101,8 +101,19 @@ class GitManager
                 }
             }
 
-            // Get all branches (local and remote)
-            $allBranches = $repo->getBranches();
+            // Get all branches (local and remote) sorted by committerdate DESC
+            $output = $repo->execute(['branch', '-a', '--no-color', '--sort=-committerdate']);
+            $allBranches = [];
+            foreach ($output as $line) {
+                $branch = trim($line);
+                if (empty($branch)) {
+                    continue;
+                }
+                if (strpos($branch, '*') === 0) {
+                    $branch = trim(substr($branch, 1));
+                }
+                $allBranches[] = $branch;
+            }
             $localBranches = [];
             $remoteBranches = [];
 

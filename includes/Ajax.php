@@ -829,8 +829,6 @@ class Ajax
             }
         }
 
-        sort($others);
-
         return array_values(array_unique(array_merge($top, $develop, $current, $others)));
     }
 
