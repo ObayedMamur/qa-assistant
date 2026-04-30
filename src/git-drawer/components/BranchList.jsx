@@ -10,6 +10,15 @@ const PROTECTED_MAIN = ['master', 'main', 'production'];
 const PROTECTED_DEV  = ['develop', 'dev', 'staging'];
 const PROTECTED_ALL  = [...PROTECTED_MAIN, ...PROTECTED_DEV];
 
+function formatAge(unixTs) {
+    if (!unixTs) return '';
+    const secs = Math.floor(Date.now() / 1000) - unixTs;
+    if (secs < 3600)        return `${Math.floor(secs / 60)}m`;
+    if (secs < 86400)       return `${Math.floor(secs / 3600)}h`;
+    if (secs < 86400 * 30)  return `${Math.floor(secs / 86400)}d`;
+    return `${Math.floor(secs / (86400 * 30))}mo`;
+}
+
 // Section label component
 function SectionLabel({ children }) {
     return (
@@ -61,15 +70,6 @@ export default function BranchList() {
         (branchMeta || []).forEach(m => { map[m.name] = m.age; });
         return map;
     }, [branchMeta]);
-
-    function formatAge(unixTs) {
-        if (!unixTs) return '';
-        const secs = Math.floor(Date.now() / 1000) - unixTs;
-        if (secs < 3600)        return `${Math.floor(secs / 60)}m`;
-        if (secs < 86400)       return `${Math.floor(secs / 3600)}h`;
-        if (secs < 86400 * 30)  return `${Math.floor(secs / 86400)}d`;
-        return `${Math.floor(secs / (86400 * 30))}mo`;
-    }
 
     const filteredBranches = useMemo(() => {
         if (!debouncedQuery.trim()) return branches;

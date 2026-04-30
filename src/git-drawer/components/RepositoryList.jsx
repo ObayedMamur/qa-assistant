@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { GitBranch, Folder, AlertCircle, Clock } from 'lucide-react';
+import { GitBranch, Folder, AlertCircle, Clock, ArrowDownToLine, RefreshCw } from 'lucide-react';
 import { useDrawer } from '../context/DrawerContext';
 import LoadingSpinner from './LoadingSpinner';
 import { timeAgo } from '../utils/time';
@@ -12,7 +12,7 @@ export default function RepositoryList() {
         if (state.isOpen && repositories.length === 0) {
             loadRepositories();
         }
-    }, [state.isOpen]);
+    }, [state.isOpen, repositories.length, loadRepositories]);
 
     const handleSelect = (repo) => {
         dispatch({ type: 'SELECT_REPOSITORY', payload: repo });
@@ -71,7 +71,10 @@ export default function RepositoryList() {
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                         }}
                     >
-                        {loading.pullAll ? '⟳ Pulling…' : '↓ Pull All'}
+                        {loading.pullAll
+                            ? <><RefreshCw size={11} style={{animation: 'spin 1s linear infinite'}} /> Pulling…</>
+                            : <><ArrowDownToLine size={11} /> Pull All</>
+                        }
                     </button>
                     <button
                         onClick={doFetchAll}
@@ -89,7 +92,10 @@ export default function RepositoryList() {
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                         }}
                     >
-                        {loading.fetchAll ? '⟳ Fetching…' : '↻ Fetch All'}
+                        {loading.fetchAll
+                            ? <><RefreshCw size={11} style={{animation: 'spin 1s linear infinite'}} /> Fetching…</>
+                            : <><RefreshCw size={11} /> Fetch All</>
+                        }
                     </button>
                 </div>
             )}

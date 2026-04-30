@@ -39,20 +39,12 @@ function DrawerInner() {
         }
     }, [isOpen, selectedRepository?.slug]);
 
-    // ESC key handler
+    // Keyboard shortcuts: ESC closes drawer, Ctrl/Cmd+Shift+G toggles
     useEffect(() => {
         const onKeyDown = (e) => {
             if (e.key === 'Escape' && isOpen) {
                 dispatch({ type: 'CLOSE_DRAWER' });
             }
-        };
-        document.addEventListener('keydown', onKeyDown);
-        return () => document.removeEventListener('keydown', onKeyDown);
-    }, [isOpen, dispatch]);
-
-    // Ctrl+Shift+G (or Cmd+Shift+G on Mac) toggles the drawer
-    useEffect(() => {
-        const onKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'G') {
                 e.preventDefault();
                 dispatch({ type: isOpen ? 'CLOSE_DRAWER' : 'OPEN_DRAWER' });

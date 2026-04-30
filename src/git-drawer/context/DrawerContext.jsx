@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useRef, useEffect } from 'react';
 import * as api from '../utils/api';
 
 const DrawerContext = createContext(null);
@@ -89,7 +89,7 @@ function reducer(state, action) {
         case 'SET_ERROR':
             return { ...state, error: action.payload };
         case 'ADD_TOAST':
-            return { ...state, toasts: [...state.toasts, { ...action.payload, id: Date.now() }] };
+            return { ...state, toasts: [...state.toasts, action.payload] };
         case 'REMOVE_TOAST':
             return { ...state, toasts: state.toasts.filter((t) => t.id !== action.payload) };
         case 'SET_UNCOMMITTED_MODAL':
@@ -102,9 +102,12 @@ function reducer(state, action) {
 export function DrawerProvider({ children }) {
     const [state, dispatch] = useReducer(reducer, initialState);
 
+    const stateRef = useRef(state);
+    useEffect(() => { stateRef.current = state; });
+
     const addToast = useCallback((message, type = 'info') => {
         const id = Date.now();
-        dispatch({ type: 'ADD_TOAST', payload: { message, type } });
+        dispatch({ type: 'ADD_TOAST', payload: { id, message, type } });
         setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 4000);
     }, []);
 
@@ -116,11 +119,12 @@ export function DrawerProvider({ children }) {
                 dispatch({ type: 'SET_REPOSITORIES', payload: res.data.repositories });
                 // Auto-select first repo if available and nothing is selected
                 if (res.data.repositories.length > 0) {
-                    if (!state.selectedRepository) {
+                    const currentSelection = stateRef.current.selectedRepository;
+                    if (!currentSelection) {
                         dispatch({ type: 'SELECT_REPOSITORY', payload: res.data.repositories[0] });
                     } else {
                         // Keep current selection if it still exists in the refreshed list
-                        const stillExists = res.data.repositories.find(r => r.slug === state.selectedRepository.slug);
+                        const stillExists = res.data.repositories.find(r => r.slug === currentSelection.slug);
                         if (!stillExists) {
                             dispatch({ type: 'SELECT_REPOSITORY', payload: res.data.repositories[0] });
                         }
@@ -220,7 +224,7 @@ export function DrawerProvider({ children }) {
                 addToast(`Fetched ${res.data.branches.length} branches`, 'success');
                 dispatch({
                     type: 'SET_BRANCHES',
-                    payload: { branches: res.data.branches, currentBranch: res.data.current_branch },
+                    payload: { branchMeta: res.data.branches, currentBranch: res.data.current_branch },
                 });
             } else {
                 addToast(res.data?.message || 'Fetch failed', 'error');
@@ -262,7 +266,13 @@ export function DrawerProvider({ children }) {
             const res = await api.fetchAllRepos();
             if (res.success) {
                 const succeeded = res.data.results.filter(r => r.success).length;
-                addToast(`Fetched ${succeeded} repos`, 'success');
+                const failed    = res.data.results.filter(r => !r.success).length;
+                addToast(
+                    failed === 0
+                        ? `Fetched ${succeeded} repos`
+                        : `Fetched ${succeeded} repos, ${failed} failed`,
+                    failed === 0 ? 'success' : 'warning'
+                );
                 await loadRepositories();
             } else {
                 addToast(res.data?.message || 'Fetch all failed', 'error');
