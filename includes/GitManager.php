@@ -101,8 +101,19 @@ class GitManager
                 }
             }
 
-            // Get all branches (local and remote)
-            $allBranches = $repo->getBranches();
+            // Get all branches (local and remote) sorted by committerdate DESC
+            $output = $repo->execute(['branch', '-a', '--no-color', '--sort=-committerdate']);
+            $allBranches = [];
+            foreach ($output as $line) {
+                $branch = trim($line);
+                if (empty($branch)) {
+                    continue;
+                }
+                if (strpos($branch, '*') === 0) {
+                    $branch = trim(substr($branch, 1));
+                }
+                $allBranches[] = $branch;
+            }
             $localBranches = [];
             $remoteBranches = [];
 
@@ -136,6 +147,67 @@ class GitManager
     }
 
     /**
+     * Get branches with last-commit metadata.
+     * Returns array of ['name' => string, 'age' => int (unix timestamp of last commit)].
+     *
+     * @param string $path Repository path
+     * @return array
+     */
+    public function getBranchesWithMeta($path)
+    {
+        if (!$this->isGitRepository($path)) {
+            return [];
+        }
+
+        try {
+            $repo = $this->git->open($path);
+            // format: <branch-name>\t<unix-timestamp>\t<upstream-trackshort>
+            // %(upstream:trackshort) yields e.g. "+2-3", "+2", "-3", or "" (up-to-date / no upstream)
+            $output = $repo->execute([
+                'for-each-ref',
+                '--sort=-committerdate',
+                "--format=%(refname:short)\t%(committerdate:unix)\t%(upstream:trackshort)",
+                'refs/heads',
+                'refs/remotes/origin',
+            ]);
+
+            $seen = [];
+            $result = [];
+
+            foreach ($output as $line) {
+                $line = trim($line);
+                if (empty($line)) continue;
+
+                $parts = explode("\t", $line, 3);
+                $name  = isset($parts[0]) ? trim($parts[0]) : '';
+                $ts    = isset($parts[1]) ? (int) trim($parts[1]) : 0;
+                $track = isset($parts[2]) ? trim($parts[2]) : '';
+
+                $behind = 0;
+                $ahead  = 0;
+                if (preg_match('/-(\d+)/', $track, $m)) $behind = (int) $m[1];
+                if (preg_match('/\+(\d+)/', $track, $m)) $ahead  = (int) $m[1];
+
+                // Strip "origin/" prefix from remote refs
+                if (strpos($name, 'origin/') === 0) {
+                    $name = substr($name, strlen('origin/'));
+                }
+                if ($name === 'HEAD' || str_ends_with($name, '/HEAD') || empty($name)) continue;
+
+                // First occurrence wins (local branch before remote); remote refs carry no track info
+                if (!isset($seen[$name])) {
+                    $seen[$name] = true;
+                    $result[] = ['name' => sanitize_text_field($name), 'age' => $ts, 'behind' => $behind, 'ahead' => $ahead];
+                }
+            }
+
+            return $result;
+        } catch (GitException $e) {
+            return [];
+        }
+    }
+
+    /**
      * Get repository status
      *
      * @param string $path Repository path
@@ -162,7 +234,9 @@ class GitManager
             $repo = $this->git->open($path);
             $currentBranch = $this->getCurrentBranch($path, $force_refresh);
             $hasChanges = $repo->hasChanges();
-            $branches = $this->getBranches($path, true, $force_refresh);
+            // Use fetch=false: status checks only need local branch data;
+            // the user explicitly triggers a Fetch for remote sync.
+            $branches = $this->getBranches($path, false, $force_refresh);
 
             $status = [
                 'valid' => true,
@@ -201,12 +275,25 @@ class GitManager
         try {
             $repo = $this->git->open($path);
 
-            // Fetch latest branches and validate branch exists
-            $branches = $this->getBranches($path, true, true); // Force refresh on switch attempt
-            if (!in_array($branch, $branches)) {
+            // Fast existence check using rev-parse — checks local and origin/ refs.
+            // Avoids a blocking git fetch --all --prune just to validate the branch.
+            $branchExists = false;
+            try {
+                $repo->execute(['rev-parse', '--verify', $branch]);
+                $branchExists = true;
+            } catch (GitException $e) {
+                try {
+                    $repo->execute(['rev-parse', '--verify', "origin/{$branch}"]);
+                    $branchExists = true;
+                } catch (GitException $e2) {
+                    // Branch not found locally or on origin
+                }
+            }
+
+            if (!$branchExists) {
                 return [
                     'success' => false,
-                    'error' => "Branch '{$branch}' does not exist. Try refreshing to see latest branches."
+                    'error' => "Branch '{$branch}' does not exist. Try refreshing (Fetch) to see latest branches."
                 ];
             }
 
@@ -257,6 +344,7 @@ class GitManager
             delete_transient('qa_assistant_current_branch_' . md5($path));
             delete_transient('qa_assistant_branches_' . md5($path));
             delete_transient('qa_assistant_repo_status_' . md5($path));
+            delete_transient('qa_assistant_has_changes_' . md5($path));
 
             return [
                 'success' => true,
@@ -451,6 +539,7 @@ class GitManager
             delete_transient('qa_assistant_current_branch_' . md5($path));
             delete_transient('qa_assistant_branches_' . md5($path));
             delete_transient('qa_assistant_repo_status_' . md5($path));
+            delete_transient('qa_assistant_has_changes_' . md5($path));
 
             return [
                 'success' => true,
@@ -495,6 +584,7 @@ class GitManager
 
             // Invalidate cache
             delete_transient('qa_assistant_repo_status_' . md5($path));
+            delete_transient('qa_assistant_has_changes_' . md5($path));
 
             return [
                 'success' => true,
@@ -550,6 +640,7 @@ class GitManager
 
             // Invalidate cache
             delete_transient('qa_assistant_repo_status_' . md5($path));
+            delete_transient('qa_assistant_has_changes_' . md5($path));
 
             return [
                 'success' => true,
@@ -604,6 +695,38 @@ class GitManager
                 'success' => false,
                 'error' => 'Clone failed: ' . $e->getMessage()
             ];
+        }
+    }
+
+    /**
+     * Check whether a repository has uncommitted changes.
+     * Caches result for 60 seconds to avoid repeated subprocess calls.
+     *
+     * @param string $path      Repository path
+     * @param bool   $force_refresh Bypass cache when true
+     * @return bool  True if there are uncommitted changes, false otherwise
+     */
+    public function hasUncommittedChanges($path, $force_refresh = false)
+    {
+        if (!$this->isGitRepository($path)) {
+            return false;
+        }
+
+        $cache_key = 'qa_assistant_has_changes_' . md5($path);
+        $cached = get_transient($cache_key);
+
+        if ($cached !== false && !$force_refresh) {
+            return (bool) $cached;
+        }
+
+        try {
+            $repo = $this->git->open($path);
+            $hasChanges = $repo->hasChanges();
+            // Store as '1'/'0' — transient false means cache miss, not "no changes"
+            set_transient($cache_key, $hasChanges ? '1' : '0', 60);
+            return $hasChanges;
+        } catch (GitException $e) {
+            return false;
         }
     }
 }

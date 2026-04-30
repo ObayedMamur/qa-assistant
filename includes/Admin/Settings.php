@@ -40,7 +40,9 @@ class Settings {
 
         $settings['selected_plugins'] = $selected_plugins;
 
-        update_option( 'qa_assistant_settings', maybe_serialize( $settings ) );
+        // Store as a plain PHP array — WordPress handles array options natively.
+        // maybe_unserialize() on all reads ensures backward compat with any old serialized values.
+        update_option('qa_assistant_settings', $settings);
         // Reload the page after saving
         if (isset($_SERVER['REQUEST_URI'])) {
             wp_safe_redirect( esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) );

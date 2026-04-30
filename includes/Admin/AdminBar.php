@@ -2,7 +2,6 @@
 
 namespace QaAssistant\Admin;
 
-use QaAssistant\GitManager;
 
 // Prevent direct access
 if (!defined('ABSPATH')) {
@@ -15,18 +14,10 @@ if (!defined('ABSPATH')) {
 class AdminBar
 {
     /**
-     * Git manager instance
-     *
-     * @var GitManager
-     */
-    protected $gitManager;
-
-    /**
      * Constructor
      */
     public function __construct()
     {
-        $this->gitManager = new GitManager();
 
         // Only show for users who can manage options
         if (!current_user_can('manage_options')) {

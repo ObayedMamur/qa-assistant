@@ -1,13 +1,17 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useRef, useEffect } from 'react';
 import * as api from '../utils/api';
+
+let _toastId = 0;
 
 const DrawerContext = createContext(null);
 
 const initialState = {
+    theme: localStorage.getItem('qa_assistant_git_drawer_theme') || 'dark',
     isOpen: false,
     repositories: [],
     selectedRepository: null,
     branches: [],
+    branchMeta: [],
     currentBranch: '',
     hasChanges: false,
     lastPulled: null,
@@ -16,6 +20,8 @@ const initialState = {
         branches: false,
         pull: false,
         fetch: false,
+        pullAll: false,
+        fetchAll: false,
         switching: null, // branch name being switched to
     },
     searchQuery: '',
@@ -29,7 +35,12 @@ function reducer(state, action) {
         case 'OPEN_DRAWER':
             return { ...state, isOpen: true };
         case 'CLOSE_DRAWER':
-            return { ...initialState, repositories: state.repositories };
+            return { ...initialState, theme: state.theme };
+        case 'TOGGLE_THEME': {
+            const newTheme = state.theme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('qa_assistant_git_drawer_theme', newTheme);
+            return { ...state, theme: newTheme };
+        }
         case 'SET_REPOSITORIES':
             return { ...state, repositories: action.payload };
         case 'SELECT_REPOSITORY': {
@@ -42,14 +53,19 @@ function reducer(state, action) {
                 searchQuery: '',
             };
         }
-        case 'SET_BRANCHES':
+        case 'SET_BRANCHES': {
+            const meta = action.payload.branchMeta ?? [];
             return {
                 ...state,
-                branches: action.payload.branches,
+                branchMeta: meta.length > 0 ? meta : state.branchMeta,
+                branches: meta.length > 0
+                    ? meta.map(b => b.name)
+                    : (action.payload.branches ?? state.branches),
                 currentBranch: action.payload.currentBranch,
                 hasChanges: action.payload.hasChanges ?? state.hasChanges,
                 lastPulled: action.payload.lastPulled ?? state.lastPulled,
             };
+        }
         case 'SET_CURRENT_BRANCH':
             return {
                 ...state,
@@ -75,7 +91,7 @@ function reducer(state, action) {
         case 'SET_ERROR':
             return { ...state, error: action.payload };
         case 'ADD_TOAST':
-            return { ...state, toasts: [...state.toasts, { ...action.payload, id: Date.now() }] };
+            return { ...state, toasts: [...state.toasts, action.payload] };
         case 'REMOVE_TOAST':
             return { ...state, toasts: state.toasts.filter((t) => t.id !== action.payload) };
         case 'SET_UNCOMMITTED_MODAL':
@@ -88,9 +104,12 @@ function reducer(state, action) {
 export function DrawerProvider({ children }) {
     const [state, dispatch] = useReducer(reducer, initialState);
 
+    const stateRef = useRef(state);
+    useEffect(() => { stateRef.current = state; });
+
     const addToast = useCallback((message, type = 'info') => {
-        const id = Date.now();
-        dispatch({ type: 'ADD_TOAST', payload: { message, type } });
+        const id = ++_toastId;
+        dispatch({ type: 'ADD_TOAST', payload: { id, message, type } });
         setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 4000);
     }, []);
 
@@ -100,9 +119,18 @@ export function DrawerProvider({ children }) {
             const res = await api.fetchRepositories();
             if (res.success) {
                 dispatch({ type: 'SET_REPOSITORIES', payload: res.data.repositories });
-                // Auto-select first repo if available
+                // Auto-select first repo if available and nothing is selected
                 if (res.data.repositories.length > 0) {
-                    dispatch({ type: 'SELECT_REPOSITORY', payload: res.data.repositories[0] });
+                    const currentSelection = stateRef.current.selectedRepository;
+                    if (!currentSelection) {
+                        dispatch({ type: 'SELECT_REPOSITORY', payload: res.data.repositories[0] });
+                    } else {
+                        // Keep current selection if it still exists in the refreshed list
+                        const stillExists = res.data.repositories.find(r => r.slug === currentSelection.slug);
+                        if (!stillExists) {
+                            dispatch({ type: 'SELECT_REPOSITORY', payload: res.data.repositories[0] });
+                        }
+                    }
                 }
             } else {
                 dispatch({ type: 'SET_ERROR', payload: res.data?.message || 'Failed to load repositories' });
@@ -122,7 +150,7 @@ export function DrawerProvider({ children }) {
                 dispatch({
                     type: 'SET_BRANCHES',
                     payload: {
-                        branches: res.data.branches,
+                        branchMeta: res.data.branches,   // [{name, age}] from PHP
                         currentBranch: res.data.currentBranch,
                         hasChanges: res.data.hasChanges,
                         lastPulled: res.data.lastPulled,
@@ -196,9 +224,13 @@ export function DrawerProvider({ children }) {
             const res = await api.fetchRepo(pluginDir);
             if (res.success) {
                 addToast(`Fetched ${res.data.branches.length} branches`, 'success');
+                // refresh_branches returns plain strings; normalize to {name, age} shape
+                const normalized = res.data.branches.map(b =>
+                    typeof b === 'string' ? { name: b, age: 0 } : b
+                );
                 dispatch({
                     type: 'SET_BRANCHES',
-                    payload: { branches: res.data.branches, currentBranch: res.data.current_branch },
+                    payload: { branchMeta: normalized, currentBranch: res.data.current_branch },
                 });
             } else {
                 addToast(res.data?.message || 'Fetch failed', 'error');
@@ -209,6 +241,54 @@ export function DrawerProvider({ children }) {
             dispatch({ type: 'SET_LOADING', payload: { fetch: false } });
         }
     }, [addToast]);
+
+    const doPullAll = useCallback(async () => {
+        dispatch({ type: 'SET_LOADING', payload: { pullAll: true } });
+        try {
+            const res = await api.pullAllRepos();
+            if (res.success) {
+                const succeeded = res.data.results.filter(r => r.success).length;
+                const failed    = res.data.results.filter(r => !r.success).length;
+                addToast(
+                    failed === 0
+                        ? `Pulled all ${succeeded} repos`
+                        : `Pulled ${succeeded} repos, ${failed} failed`,
+                    failed === 0 ? 'success' : 'warning'
+                );
+                await loadRepositories();
+            } else {
+                addToast(res.data?.message || 'Pull all failed', 'error');
+            }
+        } catch (err) {
+            addToast('Network error during pull all', 'error');
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: { pullAll: false } });
+        }
+    }, [addToast, loadRepositories]);
+
+    const doFetchAll = useCallback(async () => {
+        dispatch({ type: 'SET_LOADING', payload: { fetchAll: true } });
+        try {
+            const res = await api.fetchAllRepos();
+            if (res.success) {
+                const succeeded = res.data.results.filter(r => r.success).length;
+                const failed    = res.data.results.filter(r => !r.success).length;
+                addToast(
+                    failed === 0
+                        ? `Fetched ${succeeded} repos`
+                        : `Fetched ${succeeded} repos, ${failed} failed`,
+                    failed === 0 ? 'success' : 'warning'
+                );
+                await loadRepositories();
+            } else {
+                addToast(res.data?.message || 'Fetch all failed', 'error');
+            }
+        } catch (err) {
+            addToast('Network error during fetch all', 'error');
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: { fetchAll: false } });
+        }
+    }, [addToast, loadRepositories]);
 
     const doStash = useCallback(async (pluginDir) => {
         try {
@@ -251,6 +331,8 @@ export function DrawerProvider({ children }) {
         doSwitchBranch,
         doPull,
         doFetch,
+        doPullAll,
+        doFetchAll,
         doStash,
         doCommit,
     };

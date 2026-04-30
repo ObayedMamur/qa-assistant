@@ -10,10 +10,10 @@ const iconMap = {
 };
 
 const colorMap = {
-    success: { bg: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.2)', text: '#6ee7b7', icon: '#34d399' },
-    error: { bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.2)', text: '#fca5a5', icon: '#f87171' },
-    info: { bg: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.2)', text: '#93c5fd', icon: '#60a5fa' },
-    warning: { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.2)', text: '#fde68a', icon: '#fbbf24' },
+    success: { bg: 'var(--success-bg-muted)', border: 'var(--success-border)', text: 'var(--success-text)', icon: 'var(--success-primary)' },
+    error: { bg: 'var(--error-bg-muted)', border: 'var(--error-border)', text: 'var(--error-text)', icon: 'var(--error-primary)' },
+    info: { bg: 'var(--info-bg-muted)', border: 'var(--info-border)', text: 'var(--info-text)', icon: 'var(--info-primary)' },
+    warning: { bg: 'var(--warn-bg-muted)', border: 'var(--warn-border)', text: 'var(--warn-text)', icon: 'var(--warn-primary)' },
 };
 
 export default function ToastContainer() {
@@ -48,7 +48,7 @@ export default function ToastContainer() {
                             border: `1px solid ${colors.border}`,
                             backgroundColor: colors.bg,
                             backdropFilter: 'blur(8px)',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                            boxShadow: '0 8px 24px var(--overlay-bg)',
                             animation: 'slideInRight 0.25s ease-out',
                         }}
                     >

@@ -47,7 +47,7 @@ final class Qa_Assistant
      *
      * @var string
      */
-    const version = '1.0.0';
+    const version = QA_ASSISTANT_VERSION;
 
     /**
      * Git manager instance
@@ -98,11 +98,11 @@ final class Qa_Assistant
      */
     public function define_constants()
     {
-        // QA_ASSISTANT_VERSION is already defined at the top of the file
-        define('QA_ASSISTANT_FILE', __FILE__);
+        // QA_ASSISTANT_VERSION, QA_ASSISTANT_PLUGIN_FILE, QA_ASSISTANT_PLUGIN_DIR, and
+        // QA_ASSISTANT_PLUGIN_URL are already defined at the top of the file.
+        // Only define the two additional aliases needed internally.
         define('QA_ASSISTANT_PATH', __DIR__);
-        define('QA_ASSISTANT_PLUGIN_DIR_PATH', plugin_dir_path(QA_ASSISTANT_FILE));
-        define('QA_ASSISTANT_URL', plugins_url('', QA_ASSISTANT_FILE));
+        define('QA_ASSISTANT_URL', plugins_url('', __FILE__));
         define('QA_ASSISTANT_ASSETS', QA_ASSISTANT_URL . '/assets');
     }
 
@@ -116,7 +116,7 @@ final class Qa_Assistant
         new QaAssistant\Assets();
 
         if (defined('DOING_AJAX') && DOING_AJAX) {
-            new QaAssistant\Ajax();
+            new QaAssistant\Ajax($this->gitManager);
         }
 
         if (is_admin()) {
@@ -125,7 +125,7 @@ final class Qa_Assistant
             new QaAssistant\Frontend();
         }
 
-        // Initialize Admin Bar
+        // Initialize Admin Bar (GitManager not needed; it only renders HTML)
         if (is_user_logged_in()) {
             new QaAssistant\Admin\AdminBar();
         }

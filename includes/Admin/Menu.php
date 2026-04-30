@@ -54,10 +54,6 @@ class Menu
 
         wp_enqueue_style('qa-assistant-select2-style');
         wp_enqueue_script('qa-assistant-select2-script');
-        wp_enqueue_style('qa-assistant-bootstrap-style');
-        wp_enqueue_script('qa-assistant-bootstrap-script');
-        wp_enqueue_script('qa-assistant-popper-js-script');
-        wp_enqueue_script('qa-assistant-jquery-slim-script');
 
         $available_plugins = $settings->get_available_plugins();
 
@@ -144,7 +140,7 @@ class Menu
             }
         }
 
-        require QA_ASSISTANT_PLUGIN_DIR_PATH . 'templates/settings-page.php';
+        require QA_ASSISTANT_PLUGIN_DIR . 'templates/settings-page.php';
     }
 
     /**
