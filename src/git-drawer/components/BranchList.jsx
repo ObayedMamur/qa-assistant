@@ -50,11 +50,26 @@ function HighlightedName({ text, query }) {
 
 export default function BranchList() {
     const { state, doSwitchBranch } = useDrawer();
-    const { selectedRepository, branches, currentBranch, hasChanges, loading, searchQuery } = state;
+    const { selectedRepository, branches, branchMeta, currentBranch, hasChanges, loading, searchQuery } = state;
 
     const debouncedQuery = useDebounce(searchQuery, 300);
     const [hoveredBranch, setHoveredBranch] = useState(null);
     const [copiedBranch, setCopiedBranch]   = useState(null);
+
+    const ageByName = useMemo(() => {
+        const map = {};
+        (branchMeta || []).forEach(m => { map[m.name] = m.age; });
+        return map;
+    }, [branchMeta]);
+
+    function formatAge(unixTs) {
+        if (!unixTs) return '';
+        const secs = Math.floor(Date.now() / 1000) - unixTs;
+        if (secs < 3600)        return `${Math.floor(secs / 60)}m`;
+        if (secs < 86400)       return `${Math.floor(secs / 3600)}h`;
+        if (secs < 86400 * 30)  return `${Math.floor(secs / 86400)}d`;
+        return `${Math.floor(secs / (86400 * 30))}mo`;
+    }
 
     const filteredBranches = useMemo(() => {
         if (!debouncedQuery.trim()) return branches;
@@ -188,6 +203,17 @@ export default function BranchList() {
 
                 {/* Badges */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                    {/* Branch age */}
+                    {!isCurrent && ageByName[branch] ? (
+                        <span style={{
+                            fontSize: 9,
+                            color: 'var(--text-faint)',
+                            fontVariantNumeric: 'tabular-nums',
+                            flexShrink: 0,
+                        }}>
+                            {formatAge(ageByName[branch])}
+                        </span>
+                    ) : null}
                     {isSwitching && (
                         <span style={{ fontSize: 10, color: 'var(--warn-text)', fontWeight: 500 }}>
                             switching…

@@ -50,6 +50,18 @@ function DrawerInner() {
         return () => document.removeEventListener('keydown', onKeyDown);
     }, [isOpen, dispatch]);
 
+    // Ctrl+Shift+G (or Cmd+Shift+G on Mac) toggles the drawer
+    useEffect(() => {
+        const onKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'G') {
+                e.preventDefault();
+                dispatch({ type: isOpen ? 'CLOSE_DRAWER' : 'OPEN_DRAWER' });
+            }
+        };
+        document.addEventListener('keydown', onKeyDown);
+        return () => document.removeEventListener('keydown', onKeyDown);
+    }, [isOpen, dispatch]);
+
     // Lock body scroll when open
     useEffect(() => {
         if (isOpen) {

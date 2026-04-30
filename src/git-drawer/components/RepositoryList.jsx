@@ -5,7 +5,7 @@ import LoadingSpinner from './LoadingSpinner';
 import { timeAgo } from '../utils/time';
 
 export default function RepositoryList() {
-    const { state, dispatch, loadRepositories, loadBranches } = useDrawer();
+    const { state, dispatch, loadRepositories, loadBranches, doPullAll, doFetchAll } = useDrawer();
     const { repositories, selectedRepository, loading } = state;
 
     useEffect(() => {
@@ -47,6 +47,52 @@ export default function RepositoryList() {
                     Repositories
                 </span>
             </div>
+
+            {/* Bulk actions */}
+            {repositories.length > 0 && (
+                <div style={{
+                    display: 'flex', gap: 6, padding: '0 8px 8px',
+                    borderBottom: '1px solid var(--border-default)',
+                    marginBottom: 4,
+                }}>
+                    <button
+                        onClick={doPullAll}
+                        disabled={loading.pullAll || loading.fetchAll}
+                        title="Pull latest for all repos"
+                        style={{
+                            flex: 1, fontSize: 11, fontWeight: 500,
+                            padding: '5px 8px', borderRadius: 6,
+                            backgroundColor: 'var(--bg-surface-hover)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--border-muted)',
+                            cursor: loading.pullAll ? 'wait' : 'pointer',
+                            opacity: (loading.pullAll || loading.fetchAll) ? 0.5 : 1,
+                            transition: 'opacity 120ms',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                        }}
+                    >
+                        {loading.pullAll ? '⟳ Pulling…' : '↓ Pull All'}
+                    </button>
+                    <button
+                        onClick={doFetchAll}
+                        disabled={loading.pullAll || loading.fetchAll}
+                        title="Fetch all repos"
+                        style={{
+                            flex: 1, fontSize: 11, fontWeight: 500,
+                            padding: '5px 8px', borderRadius: 6,
+                            backgroundColor: 'var(--bg-surface-hover)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--border-muted)',
+                            cursor: loading.fetchAll ? 'wait' : 'pointer',
+                            opacity: (loading.pullAll || loading.fetchAll) ? 0.5 : 1,
+                            transition: 'opacity 120ms',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                        }}
+                    >
+                        {loading.fetchAll ? '⟳ Fetching…' : '↻ Fetch All'}
+                    </button>
+                </div>
+            )}
 
             {repositories.map((repo) => {
                 const isSelected = selectedRepository?.slug === repo.slug;

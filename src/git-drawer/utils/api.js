@@ -36,3 +36,5 @@ export const fetchRepo = (pluginDir) => post('qa_assistant_refresh_branches', { 
 export const stashChanges = (pluginDir) => post('qa_assistant_stash_changes', { plugin_dir: pluginDir });
 export const commitChanges = (pluginDir, message) =>
     post('qa_assistant_commit_changes', { plugin_dir: pluginDir, commit_message: message });
+export const pullAllRepos  = () => post('qa_assistant_pull_all_repos');
+export const fetchAllRepos = () => post('qa_assistant_fetch_all_repos');

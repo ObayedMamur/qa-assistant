@@ -9,6 +9,7 @@ const initialState = {
     repositories: [],
     selectedRepository: null,
     branches: [],
+    branchMeta: [],
     currentBranch: '',
     hasChanges: false,
     lastPulled: null,
@@ -17,6 +18,8 @@ const initialState = {
         branches: false,
         pull: false,
         fetch: false,
+        pullAll: false,
+        fetchAll: false,
         switching: null, // branch name being switched to
     },
     searchQuery: '',
@@ -48,14 +51,19 @@ function reducer(state, action) {
                 searchQuery: '',
             };
         }
-        case 'SET_BRANCHES':
+        case 'SET_BRANCHES': {
+            const meta = action.payload.branchMeta ?? [];
             return {
                 ...state,
-                branches: action.payload.branches,
+                branchMeta: meta.length > 0 ? meta : state.branchMeta,
+                branches: meta.length > 0
+                    ? meta.map(b => b.name)
+                    : (action.payload.branches ?? state.branches),
                 currentBranch: action.payload.currentBranch,
                 hasChanges: action.payload.hasChanges ?? state.hasChanges,
                 lastPulled: action.payload.lastPulled ?? state.lastPulled,
             };
+        }
         case 'SET_CURRENT_BRANCH':
             return {
                 ...state,
@@ -136,7 +144,7 @@ export function DrawerProvider({ children }) {
                 dispatch({
                     type: 'SET_BRANCHES',
                     payload: {
-                        branches: res.data.branches,
+                        branchMeta: res.data.branches,   // [{name, age}] from PHP
                         currentBranch: res.data.currentBranch,
                         hasChanges: res.data.hasChanges,
                         lastPulled: res.data.lastPulled,
@@ -224,6 +232,48 @@ export function DrawerProvider({ children }) {
         }
     }, [addToast]);
 
+    const doPullAll = useCallback(async () => {
+        dispatch({ type: 'SET_LOADING', payload: { pullAll: true } });
+        try {
+            const res = await api.pullAllRepos();
+            if (res.success) {
+                const succeeded = res.data.results.filter(r => r.success).length;
+                const failed    = res.data.results.filter(r => !r.success).length;
+                addToast(
+                    failed === 0
+                        ? `Pulled all ${succeeded} repos`
+                        : `Pulled ${succeeded} repos, ${failed} failed`,
+                    failed === 0 ? 'success' : 'warning'
+                );
+                await loadRepositories();
+            } else {
+                addToast(res.data?.message || 'Pull all failed', 'error');
+            }
+        } catch (err) {
+            addToast('Network error during pull all', 'error');
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: { pullAll: false } });
+        }
+    }, [addToast, loadRepositories]);
+
+    const doFetchAll = useCallback(async () => {
+        dispatch({ type: 'SET_LOADING', payload: { fetchAll: true } });
+        try {
+            const res = await api.fetchAllRepos();
+            if (res.success) {
+                const succeeded = res.data.results.filter(r => r.success).length;
+                addToast(`Fetched ${succeeded} repos`, 'success');
+                await loadRepositories();
+            } else {
+                addToast(res.data?.message || 'Fetch all failed', 'error');
+            }
+        } catch (err) {
+            addToast('Network error during fetch all', 'error');
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: { fetchAll: false } });
+        }
+    }, [addToast, loadRepositories]);
+
     const doStash = useCallback(async (pluginDir) => {
         try {
             const res = await api.stashChanges(pluginDir);
@@ -265,6 +315,8 @@ export function DrawerProvider({ children }) {
         doSwitchBranch,
         doPull,
         doFetch,
+        doPullAll,
+        doFetchAll,
         doStash,
         doCommit,
     };
