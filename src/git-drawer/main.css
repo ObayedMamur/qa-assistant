@@ -101,10 +101,125 @@
  * This prevents any CSS from polluting WP admin or frontend styles
  */
 #git-branches-root {
+    /* Base Dark Theme (Default) */
+    --bg-canvas: #0d1117;
+    --bg-surface: #161b22;
+    --bg-surface-hover: #21262d;
+    --bg-input: rgba(22, 27, 34, 0.8);
+    --border-default: #30363d;
+    --border-subtle: #21262d;
+    --text-primary: #e6edf3;
+    --text-secondary: #c9d1d9;
+    --text-muted: #8b949e;
+    --text-faint: #6e7681;
+    --icon-default: #8b949e;
+    --icon-muted: #484f58;
+
+    --accent-primary: #6366f1;
+    --accent-text: #818cf8;
+    --accent-text-light: #a5b4fc;
+    --accent-bg-subtle: rgba(99, 102, 241, 0.08);
+    --accent-bg-muted: rgba(99, 102, 241, 0.12);
+    --accent-bg-active: rgba(99, 102, 241, 0.15);
+    --accent-border: rgba(99, 102, 241, 0.2);
+    --accent-border-hover: rgba(99, 102, 241, 0.3);
+
+    --warn-primary: #fbbf24;
+    --warn-text: #f59e0b;
+    --warn-bg-subtle: rgba(245, 158, 11, 0.06);
+    --warn-bg-muted: rgba(245, 158, 11, 0.12);
+    --warn-bg-active: rgba(245, 158, 11, 0.18);
+    --warn-border: rgba(245, 158, 11, 0.22);
+    --warn-border-active: rgba(245, 158, 11, 0.3);
+
+    --success-primary: #34d399;
+    --success-text: #6ee7b7;
+    --success-bg-muted: rgba(52, 211, 153, 0.12);
+    --success-border: rgba(52, 211, 153, 0.2);
+
+    --error-primary: #f87171;
+    --error-text: #fca5a5;
+    --error-bg-muted: rgba(248, 113, 113, 0.12);
+    --error-border: rgba(248, 113, 113, 0.2);
+
+    --info-primary: #60a5fa;
+    --info-text: #93c5fd;
+    --info-bg-muted: rgba(96, 165, 250, 0.12);
+    --info-border: rgba(96, 165, 250, 0.2);
+
+    --btn-primary-bg: #238636;
+    --btn-primary-border: rgba(35, 134, 54, 0.4);
+    --btn-primary-text: #ffffff;
+    
+    --btn-secondary-bg: #21262d;
+    --btn-secondary-bg-disabled: #1c2128;
+    
+    --modal-bg: #161b22;
+    --modal-border: #30363d;
+    --overlay-bg: rgba(0, 0, 0, 0.5);
+
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+#git-branches-root.theme-light {
+    --bg-canvas: #f6f8fa;
+    --bg-surface: #ffffff;
+    --bg-surface-hover: #f3f4f6;
+    --bg-input: #ffffff;
+    --border-default: #d0d7de;
+    --border-subtle: #e5e7eb;
+    --text-primary: #1f2328;
+    --text-secondary: #656d76;
+    --text-muted: #57606a;
+    --text-faint: #8c959f;
+    --icon-default: #57606a;
+    --icon-muted: #afb8c1;
+
+    --accent-primary: #4f46e5;
+    --accent-text: #4f46e5;
+    --accent-text-light: #4338ca;
+    --accent-bg-subtle: rgba(79, 70, 229, 0.04);
+    --accent-bg-muted: rgba(79, 70, 229, 0.08);
+    --accent-bg-active: rgba(79, 70, 229, 0.12);
+    --accent-border: rgba(79, 70, 229, 0.15);
+    --accent-border-hover: rgba(79, 70, 229, 0.25);
+
+    --warn-primary: #9a6700;
+    --warn-text: #9a6700;
+    --warn-bg-subtle: rgba(212, 167, 44, 0.1);
+    --warn-bg-muted: rgba(212, 167, 44, 0.15);
+    --warn-bg-active: rgba(212, 167, 44, 0.2);
+    --warn-border: rgba(212, 167, 44, 0.3);
+    --warn-border-active: rgba(212, 167, 44, 0.4);
+
+    --success-primary: #1a7f37;
+    --success-text: #1a7f37;
+    --success-bg-muted: rgba(26, 127, 55, 0.1);
+    --success-border: rgba(26, 127, 55, 0.2);
+
+    --error-primary: #d1242f;
+    --error-text: #d1242f;
+    --error-bg-muted: rgba(209, 36, 47, 0.1);
+    --error-border: rgba(209, 36, 47, 0.2);
+
+    --info-primary: #0969da;
+    --info-text: #0969da;
+    --info-bg-muted: rgba(9, 105, 218, 0.1);
+    --info-border: rgba(9, 105, 218, 0.2);
+
+    --btn-primary-bg: #1f883d;
+    --btn-primary-border: rgba(27, 31, 36, 0.15);
+    --btn-primary-text: #ffffff;
+    
+    --btn-secondary-bg: #f6f8fa;
+    --btn-secondary-bg-disabled: #f3f4f6;
+    
+    --modal-bg: #ffffff;
+    --modal-border: #d0d7de;
+    --overlay-bg: rgba(31, 35, 40, 0.5);
 }
 
 #git-branches-root *,

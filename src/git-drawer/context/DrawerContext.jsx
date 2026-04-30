@@ -4,6 +4,7 @@ import * as api from '../utils/api';
 const DrawerContext = createContext(null);
 
 const initialState = {
+    theme: localStorage.getItem('qa_assistant_git_drawer_theme') || 'dark',
     isOpen: false,
     repositories: [],
     selectedRepository: null,
@@ -29,7 +30,12 @@ function reducer(state, action) {
         case 'OPEN_DRAWER':
             return { ...state, isOpen: true };
         case 'CLOSE_DRAWER':
-            return { ...initialState };
+            return { ...initialState, theme: state.theme };
+        case 'TOGGLE_THEME': {
+            const newTheme = state.theme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('qa_assistant_git_drawer_theme', newTheme);
+            return { ...state, theme: newTheme };
+        }
         case 'SET_REPOSITORIES':
             return { ...state, repositories: action.payload };
         case 'SELECT_REPOSITORY': {

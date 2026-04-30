@@ -40,7 +40,7 @@ export default function SearchInput() {
                     pointerEvents: 'none',
                     display: 'flex',
                     alignItems: 'center',
-                    color: '#8b949e',
+                    color: 'var(--icon-muted)',
                 }}>
                     <Search size={14} />
                 </div>
@@ -59,9 +59,9 @@ export default function SearchInput() {
                         paddingBottom: 8,
                         fontSize: 13,
                         borderRadius: 8,
-                        backgroundColor: 'rgba(22,27,34,0.8)',
-                        color: '#e6edf3',
-                        border: '1px solid #30363d',
+                        backgroundColor: 'var(--bg-input)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-default)',
                         outline: 'none',
                         boxSizing: 'border-box',
                         fontFamily: 'inherit',
@@ -85,7 +85,7 @@ export default function SearchInput() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: '#8b949e',
+                            color: 'var(--icon-muted)',
                             padding: 2,
                             borderRadius: 4,
                             lineHeight: 1,

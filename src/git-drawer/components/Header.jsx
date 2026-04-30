@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
-import { X, ArrowDownToLine, RefreshCw, GitBranch, AlertCircle, Clock } from 'lucide-react';
+import { X, ArrowDownToLine, RefreshCw, GitBranch, AlertCircle, Clock, Sun, Moon } from 'lucide-react';
 import { useDrawer } from '../context/DrawerContext';
 import LoadingSpinner from './LoadingSpinner';
 import { timeAgo } from '../utils/time';
 
 export default function Header() {
     const { state, dispatch, doPull, doFetch } = useDrawer();
-    const { selectedRepository, loading, hasChanges, lastPulled } = state;
+    const { selectedRepository, loading, hasChanges, lastPulled, theme } = state;
 
     const handleClose = () => dispatch({ type: 'CLOSE_DRAWER' });
+    const handleThemeToggle = () => dispatch({ type: 'TOGGLE_THEME' });
 
     const handlePull = () => {
         if (selectedRepository && !loading.pull) {
@@ -40,16 +41,16 @@ export default function Header() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '14px 20px',
-            borderBottom: '1px solid #21262d',
-            backgroundColor: '#161b22',
+            borderBottom: '1px solid var(--border-subtle)',
+            backgroundColor: 'var(--bg-surface)',
             flexShrink: 0,
             boxSizing: 'border-box',
             gap: 12,
         }}>
             {/* Left: Title + repo badge + meta */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
-                <GitBranch size={18} style={{ color: '#818cf8', flexShrink: 0 }} />
-                <h2 style={{ fontSize: 15, fontWeight: 600, color: '#e6edf3', whiteSpace: 'nowrap', margin: 0, letterSpacing: '-0.01em' }}>
+                <GitBranch size={18} style={{ color: 'var(--accent-text)', flexShrink: 0 }} />
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', margin: 0, letterSpacing: '-0.01em' }}>
                     Git Branches
                 </h2>
                 {repoLabel && (
@@ -63,9 +64,9 @@ export default function Header() {
                             borderRadius: 12,
                             fontSize: 11,
                             fontWeight: 500,
-                            backgroundColor: 'rgba(99,102,241,0.12)',
-                            color: '#a5b4fc',
-                            border: '1px solid rgba(99,102,241,0.2)',
+                            backgroundColor: 'var(--accent-bg-muted)',
+                            color: 'var(--accent-text-light)',
+                            border: '1px solid var(--accent-border)',
                             maxWidth: 160,
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -87,9 +88,9 @@ export default function Header() {
                         borderRadius: 12,
                         fontSize: 10,
                         fontWeight: 600,
-                        backgroundColor: 'rgba(245,158,11,0.1)',
-                        color: '#fbbf24',
-                        border: '1px solid rgba(245,158,11,0.2)',
+                        backgroundColor: 'var(--warn-bg-muted)',
+                        color: 'var(--warn-primary)',
+                        border: '1px solid var(--warn-border)',
                         whiteSpace: 'nowrap',
                     }}>
                         <AlertCircle size={10} />
@@ -104,7 +105,7 @@ export default function Header() {
                         alignItems: 'center',
                         gap: 3,
                         fontSize: 10,
-                        color: '#6e7681',
+                        color: 'var(--text-faint)',
                         whiteSpace: 'nowrap',
                         marginLeft: 'auto',
                     }}>
@@ -114,10 +115,10 @@ export default function Header() {
                 )}
             </div>
 
-            {/* Right: Pull + Fetch button group, Close */}
+            {/* Right: Pull + Fetch button group, Theme Toggle, Close */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                 {/* Unified Pull / Fetch button group */}
-                <div style={{ display: 'inline-flex', borderRadius: 6, overflow: 'hidden', border: '1px solid #30363d' }}>
+                <div style={{ display: 'inline-flex', borderRadius: 6, overflow: 'hidden', border: '1px solid var(--border-default)' }}>
                     <button
                         onClick={handlePull}
                         disabled={!selectedRepository || loading.pull}
@@ -128,10 +129,10 @@ export default function Header() {
                             padding: '5px 11px',
                             fontSize: 12,
                             fontWeight: 500,
-                            backgroundColor: (!selectedRepository || loading.pull) ? '#1c2128' : '#21262d',
-                            color: '#c9d1d9',
+                            backgroundColor: (!selectedRepository || loading.pull) ? 'var(--btn-secondary-bg-disabled)' : 'var(--btn-secondary-bg)',
+                            color: 'var(--text-secondary)',
                             border: 'none',
-                            borderRight: '1px solid #30363d',
+                            borderRight: '1px solid var(--border-default)',
                             opacity: (!selectedRepository || loading.pull) ? 0.45 : 1,
                             cursor: (!selectedRepository || loading.pull) ? 'not-allowed' : 'pointer',
                             transition: 'background 150ms ease, opacity 150ms ease',
@@ -152,8 +153,8 @@ export default function Header() {
                             padding: '5px 11px',
                             fontSize: 12,
                             fontWeight: 500,
-                            backgroundColor: (!selectedRepository || loading.fetch) ? '#1c2128' : '#21262d',
-                            color: '#c9d1d9',
+                            backgroundColor: (!selectedRepository || loading.fetch) ? 'var(--btn-secondary-bg-disabled)' : 'var(--btn-secondary-bg)',
+                            color: 'var(--text-secondary)',
                             border: 'none',
                             opacity: (!selectedRepository || loading.fetch) ? 0.45 : 1,
                             cursor: (!selectedRepository || loading.fetch) ? 'not-allowed' : 'pointer',
@@ -166,7 +167,27 @@ export default function Header() {
                         <span>Fetch</span>
                     </button>
                 </div>
-                <div style={{ width: 1, height: 18, backgroundColor: '#30363d', margin: '0 2px' }} />
+
+                <div style={{ width: 1, height: 18, backgroundColor: 'var(--border-default)', margin: '0 2px' }} />
+                
+                <button
+                    onClick={handleThemeToggle}
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 28,
+                        height: 28,
+                        borderRadius: 6,
+                        color: 'var(--icon-default)',
+                        transition: 'all 150ms ease',
+                        cursor: 'pointer',
+                    }}
+                    title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+                >
+                    {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
+                </button>
+
                 <button
                     onClick={handleClose}
                     style={{
@@ -176,8 +197,9 @@ export default function Header() {
                         width: 28,
                         height: 28,
                         borderRadius: 6,
-                        color: '#8b949e',
+                        color: 'var(--icon-default)',
                         transition: 'all 150ms ease',
+                        cursor: 'pointer',
                     }}
                     title="Close drawer"
                 >

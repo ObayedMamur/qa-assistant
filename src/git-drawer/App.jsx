@@ -62,6 +62,20 @@ function DrawerInner() {
         };
     }, [isOpen]);
 
+    // Sync theme to root element class
+    useEffect(() => {
+        const root = document.getElementById('git-branches-root');
+        if (root) {
+            if (state.theme === 'light') {
+                root.classList.add('theme-light');
+                root.classList.remove('theme-dark');
+            } else {
+                root.classList.add('theme-dark');
+                root.classList.remove('theme-light');
+            }
+        }
+    }, [state.theme]);
+
     return (
         <>
             <AnimatePresence>
@@ -86,10 +100,12 @@ function DrawerInner() {
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
                             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                            className="fixed top-0 right-0 h-screen w-[640px] max-w-[90vw] z-[100001]
-                                bg-[#0d1117] border-l border-gray-800 shadow-2xl
-                                flex flex-col box-border"
-                            style={{ position: 'fixed' }}
+                            className="fixed top-0 right-0 h-screen w-[640px] max-w-[90vw] z-[100001] shadow-2xl flex flex-col box-border"
+                            style={{ 
+                                position: 'fixed', 
+                                backgroundColor: 'var(--bg-canvas)',
+                                borderLeft: '1px solid var(--border-default)'
+                            }}
                         >
                             {/* Header */}
                             <Header />
@@ -97,12 +113,12 @@ function DrawerInner() {
                             {/* Content — Repo sidebar + Branch panel */}
                             <div className="flex flex-1 min-h-0 overflow-hidden">
                                 {/* Repository Sidebar (30%) */}
-                                <div className="w-[50%] border-r border-gray-800 flex flex-col min-h-0 bg-[#0d1117]">
+                                <div className="w-[50%] flex flex-col min-h-0" style={{ borderRight: '1px solid var(--border-default)', backgroundColor: 'var(--bg-canvas)' }}>
                                     <RepositoryList />
                                 </div>
 
                                 {/* Branch Panel (70%) */}
-                                <div className="w-[50%] flex flex-col min-h-0 bg-[#0d1117]">
+                                <div className="w-[50%] flex flex-col min-h-0" style={{ backgroundColor: 'var(--bg-canvas)' }}>
                                     <BranchList />
                                 </div>
                             </div>

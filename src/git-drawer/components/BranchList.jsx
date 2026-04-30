@@ -19,7 +19,7 @@ function SectionLabel({ children }) {
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
-            color: '#484f58',
+            color: 'var(--icon-muted)',
             userSelect: 'none',
         }}>
             {children}
@@ -36,8 +36,8 @@ function HighlightedName({ text, query }) {
         <>
             {text.slice(0, idx)}
             <mark style={{
-                background: 'rgba(99,102,241,0.28)',
-                color: '#c7d2fe',
+                background: 'var(--accent-bg-active)',
+                color: 'var(--accent-text)',
                 borderRadius: 2,
                 padding: '0 1px',
             }}>
@@ -88,8 +88,8 @@ export default function BranchList() {
     if (!selectedRepository) {
         return (
             <div className="flex flex-col items-center justify-center h-full gap-2" style={{ textAlign: 'center', padding: '0 24px' }}>
-                <GitBranch size={32} style={{ color: '#484f58' }} />
-                <p style={{ fontSize: 13, color: '#8b949e', lineHeight: 1.5 }}>Select a repository to view branches</p>
+                <GitBranch size={32} style={{ color: 'var(--icon-muted)' }} />
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>Select a repository to view branches</p>
             </div>
         );
     }
@@ -121,12 +121,12 @@ export default function BranchList() {
                     gap: 8,
                     transition: 'background 120ms ease, opacity 120ms ease',
                     backgroundColor: isCurrent
-                        ? 'rgba(99,102,241,0.08)'
-                        : isHovered ? 'rgba(255,255,255,0.04)' : 'transparent',
+                        ? 'var(--accent-bg-subtle)'
+                        : isHovered ? 'var(--bg-surface-hover)' : 'transparent',
                     // Left accent border: 2px for current, transparent otherwise
                     borderLeft: isCurrent
-                        ? '2px solid #818cf8'
-                        : isHovered ? '2px solid rgba(99,102,241,0.3)' : '2px solid transparent',
+                        ? '2px solid var(--accent-text)'
+                        : isHovered ? '2px solid var(--accent-border-hover)' : '2px solid transparent',
                     borderTop: '1px solid transparent',
                     borderRight: '1px solid transparent',
                     borderBottom: '1px solid transparent',
@@ -140,10 +140,10 @@ export default function BranchList() {
                     {isSwitching ? (
                         <LoadingSpinner size={13} />
                     ) : isCurrent ? (
-                        <GitCommitHorizontal size={13} style={{ color: '#818cf8' }} />
+                        <GitCommitHorizontal size={13} style={{ color: 'var(--accent-text)' }} />
                     ) : (
                         <GitBranch size={13} style={{
-                            color: isMain ? '#f59e0b' : isDev ? '#34d399' : '#6e7681',
+                            color: isMain ? 'var(--warn-text)' : isDev ? 'var(--success-primary)' : 'var(--text-faint)',
                         }} />
                     )}
                 </div>
@@ -156,7 +156,7 @@ export default function BranchList() {
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     flex: 1,
-                    color: isCurrent ? '#a5b4fc' : '#e6edf3',
+                    color: isCurrent ? 'var(--accent-text-light)' : 'var(--text-primary)',
                     fontWeight: isCurrent ? 500 : 400,
                     letterSpacing: '-0.01em',
                 }}>
@@ -174,7 +174,7 @@ export default function BranchList() {
                             cursor: 'pointer',
                             padding: '2px 4px',
                             borderRadius: 4,
-                            color: isCopied ? '#34d399' : '#6e7681',
+                            color: isCopied ? 'var(--success-primary)' : 'var(--text-faint)',
                             display: 'flex',
                             alignItems: 'center',
                             flexShrink: 0,
@@ -189,7 +189,7 @@ export default function BranchList() {
                 {/* Badges */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
                     {isSwitching && (
-                        <span style={{ fontSize: 10, color: '#f59e0b', fontWeight: 500 }}>
+                        <span style={{ fontSize: 10, color: 'var(--warn-text)', fontWeight: 500 }}>
                             switching…
                         </span>
                     )}
@@ -199,9 +199,9 @@ export default function BranchList() {
                         <span style={{
                             display: 'inline-flex', alignItems: 'center', gap: 3,
                             padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 500,
-                            backgroundColor: 'rgba(245,158,11,0.12)',
-                            color: '#fbbf24',
-                            border: '1px solid rgba(245,158,11,0.22)',
+                            backgroundColor: 'var(--warn-bg-muted)',
+                            color: 'var(--warn-primary)',
+                            border: '1px solid var(--warn-border)',
                         }}>
                             <AlertCircle size={9} />
                             modified
@@ -214,9 +214,9 @@ export default function BranchList() {
                             display: 'inline-flex', alignItems: 'center',
                             padding: '1px 7px', borderRadius: 4, fontSize: 10, fontWeight: 600,
                             textTransform: 'uppercase', letterSpacing: '0.04em',
-                            backgroundColor: 'rgba(99,102,241,0.15)',
-                            color: '#a5b4fc',
-                            border: '1px solid rgba(99,102,241,0.28)',
+                            backgroundColor: 'var(--accent-bg-active)',
+                            color: 'var(--accent-text-light)',
+                            border: '1px solid var(--accent-border)',
                         }}>
                             current
                         </span>
@@ -227,9 +227,9 @@ export default function BranchList() {
                         <span style={{
                             display: 'inline-flex', alignItems: 'center',
                             padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600,
-                            backgroundColor: 'rgba(245,158,11,0.18)',
-                            color: '#fbbf24',
-                            border: '1px solid rgba(245,158,11,0.3)',
+                            backgroundColor: 'var(--warn-bg-active)',
+                            color: 'var(--warn-primary)',
+                            border: '1px solid var(--warn-border-active)',
                         }}>
                             main
                         </span>
@@ -249,7 +249,7 @@ export default function BranchList() {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '0 16px 8px', boxSizing: 'border-box',
             }}>
-                <span style={{ fontSize: 11, color: '#8b949e', fontWeight: 500 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
                     {filteredBranches.length} branch{filteredBranches.length !== 1 ? 'es' : ''}
                     {searchQuery && ` matching "${debouncedQuery}"`}
                 </span>
@@ -258,12 +258,12 @@ export default function BranchList() {
             {loading.branches ? (
                 <div className="flex flex-col items-center justify-center flex-1 gap-3">
                     <LoadingSpinner size={22} />
-                    <span style={{ fontSize: 12, color: '#8b949e' }}>Loading branches…</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Loading branches…</span>
                 </div>
             ) : filteredBranches.length === 0 ? (
                 <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ textAlign: 'center', padding: '0 24px' }}>
-                    <GitBranch size={24} style={{ color: '#484f58' }} />
-                    <p style={{ fontSize: 13, color: '#8b949e' }}>
+                    <GitBranch size={24} style={{ color: 'var(--icon-muted)' }} />
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
                         {searchQuery ? 'No branches match your search' : 'No branches found'}
                     </p>
                 </div>
