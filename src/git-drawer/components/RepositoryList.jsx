@@ -71,16 +71,18 @@ export default function RepositoryList() {
                     >
                         <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
                             <Folder size={13} style={{ flexShrink: 0, color: isSelected ? '#818cf8' : '#6e7681' }} />
-                            <span style={{
-                                fontSize: 13,
-                                fontWeight: 500,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                color: 'inherit',
-                                flex: 1,
-                                letterSpacing: '-0.01em',
-                            }}>
+                            <span
+                                title={repo.alias || repo.slug}
+                                style={{
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    color: 'inherit',
+                                    flex: 1,
+                                    letterSpacing: '-0.01em',
+                                }}>
                                 {repo.alias || repo.slug}
                             </span>
                             {/* Uncommitted changes dot */}
