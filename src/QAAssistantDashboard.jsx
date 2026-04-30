@@ -31,8 +31,6 @@ import {
     MessageSquare,
     Box,
     RefreshCw,
-    ChevronDown,
-    ChevronUp,
     User,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -146,7 +144,7 @@ const Switch = ({ checked, onCheckedChange, disabled = false }) => (
     </button>
 );
 
-const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
+const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel, confirmLabel }) => {
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center" style={{ position: 'fixed' }}>
@@ -161,7 +159,7 @@ const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
                 <p className="text-sm text-slate-600 mb-5 leading-relaxed">{message}</p>
                 <div className="flex justify-end gap-2">
                     <Button variant="outline" size="sm" onClick={onCancel}>Cancel</Button>
-                    <Button variant="destructive" size="sm" onClick={onConfirm}>Remove</Button>
+                    <Button variant="destructive" size="sm" onClick={onConfirm}>{confirmLabel || 'Confirm'}</Button>
                 </div>
             </div>
         </div>
@@ -215,10 +213,31 @@ const ACTION_CONFIG = {
 
 // --- General Settings Tab ---
 const GeneralSettingsTab = ({ addToast }) => {
-    const [showInAdminBar, setShowInAdminBar] = useState(true);
+    const [showInAdminBar, setShowInAdminBar]   = useState(true);
     const [showBranchBadges, setShowBranchBadges] = useState(true);
-    const [notifyOnPull, setNotifyOnPull] = useState(true);
-    const [toastDuration, setToastDuration] = useState(4);
+    const [notifyOnPull, setNotifyOnPull]         = useState(true);
+    const [toastDuration, setToastDuration]       = useState(4);
+    const [savedKey, setSavedKey] = useState(null);
+
+    const markSaved = (key) => {
+        setSavedKey(key);
+        setTimeout(() => setSavedKey(null), 2000);
+    };
+
+    const saveSetting = async (key, value) => {
+        try {
+            await apiCall('qa_assistant_save_general_settings', { key, value });
+            markSaved(key);
+        } catch (err) {
+            addToast('Failed to save: ' + err.message, 'error');
+        }
+    };
+
+    const SavedIndicator = ({ settingKey }) => savedKey === settingKey ? (
+        <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" /> Saved
+        </span>
+    ) : null;
 
     return (
         <div className="space-y-6">
@@ -240,7 +259,13 @@ const GeneralSettingsTab = ({ addToast }) => {
                                 <p className="text-xs text-slate-500 mt-0.5">Display Git Branches button in the WordPress admin bar</p>
                             </div>
                         </div>
-                        <Switch checked={showInAdminBar} onCheckedChange={setShowInAdminBar} />
+                        <div className="flex items-center gap-2">
+                            <SavedIndicator settingKey="show_in_admin_bar" />
+                            <Switch checked={showInAdminBar} onCheckedChange={(v) => {
+                                setShowInAdminBar(v);
+                                saveSetting('show_in_admin_bar', v);
+                            }} />
+                        </div>
                     </div>
                     <div className="border-t border-slate-100" />
                     <div className="flex items-center justify-between py-2">
@@ -253,7 +278,13 @@ const GeneralSettingsTab = ({ addToast }) => {
                                 <p className="text-xs text-slate-500 mt-0.5">Show colored branch badges next to plugin names</p>
                             </div>
                         </div>
-                        <Switch checked={showBranchBadges} onCheckedChange={setShowBranchBadges} />
+                        <div className="flex items-center gap-2">
+                            <SavedIndicator settingKey="show_branch_badges" />
+                            <Switch checked={showBranchBadges} onCheckedChange={(v) => {
+                                setShowBranchBadges(v);
+                                saveSetting('show_branch_badges', v);
+                            }} />
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -276,7 +307,13 @@ const GeneralSettingsTab = ({ addToast }) => {
                                 <p className="text-xs text-slate-500 mt-0.5">Show toast notifications after pull operations</p>
                             </div>
                         </div>
-                        <Switch checked={notifyOnPull} onCheckedChange={setNotifyOnPull} />
+                        <div className="flex items-center gap-2">
+                            <SavedIndicator settingKey="notify_on_pull" />
+                            <Switch checked={notifyOnPull} onCheckedChange={(v) => {
+                                setNotifyOnPull(v);
+                                saveSetting('notify_on_pull', v);
+                            }} />
+                        </div>
                     </div>
                     <div className="border-t border-slate-100" />
                     <div className="flex items-start justify-between py-2">
@@ -289,17 +326,24 @@ const GeneralSettingsTab = ({ addToast }) => {
                                 <p className="text-xs text-slate-500 mt-0.5">How long notifications stay visible (seconds)</p>
                             </div>
                         </div>
-                        <select
-                            value={toastDuration}
-                            onChange={(e) => setToastDuration(Number(e.target.value))}
-                            className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-                        >
-                            <option value={2}>2s</option>
-                            <option value={3}>3s</option>
-                            <option value={4}>4s</option>
-                            <option value={5}>5s</option>
-                            <option value={8}>8s</option>
-                        </select>
+                        <div className="flex items-center gap-2">
+                            <SavedIndicator settingKey="toast_duration" />
+                            <select
+                                value={toastDuration}
+                                onChange={(e) => {
+                                    const v = Number(e.target.value);
+                                    setToastDuration(v);
+                                    saveSetting('toast_duration', v);
+                                }}
+                                className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                            >
+                                <option value={2}>2s</option>
+                                <option value={3}>3s</option>
+                                <option value={4}>4s</option>
+                                <option value={5}>5s</option>
+                                <option value={8}>8s</option>
+                            </select>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -308,88 +352,62 @@ const GeneralSettingsTab = ({ addToast }) => {
 };
 
 // --- Integration Settings Tab ---
-const IntegrationSettingsTab = () => {
-    const integrations = [
-        {
-            name: 'GitHub Webhooks',
-            description: 'Auto-pull when changes are pushed to GitHub',
-            icon: Github,
-            status: 'planned',
-        },
-        {
-            name: 'Slack Notifications',
-            description: 'Send deployment notifications to Slack channels',
-            icon: MessageSquare,
-            status: 'planned',
-        },
-        {
-            name: 'Bitbucket',
-            description: 'Connect Bitbucket repositories for branch management',
-            icon: Layers,
-            status: 'planned',
-        },
-        {
-            name: 'GitLab',
-            description: 'GitLab repository integration and CI/CD triggers',
-            icon: GitBranch,
-            status: 'planned',
-        },
-    ];
-
-    return (
-        <Card>
-            <CardHeader className="border-b border-slate-100">
-                <CardTitle>Integrations</CardTitle>
-                <CardDescription>
-                    Connect QA Assistant with external services to enhance your workflow.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="!pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {integrations.map((integration) => (
-                        <div
-                            key={integration.name}
-                            className="group relative border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all bg-slate-50/50"
-                        >
-                            <div className="flex items-start gap-4">
-                                <div className="p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm">
-                                    <integration.icon className="w-5 h-5 text-slate-600" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <h4 className="text-sm font-semibold text-slate-900">{integration.name}</h4>
-                                        <Badge variant="outline" className="!text-[10px] !px-1.5 !py-0 text-slate-400 border-slate-200">
-                                            Coming Soon
-                                        </Badge>
-                                    </div>
-                                    <p className="text-xs text-slate-500 leading-relaxed">{integration.description}</p>
-                                </div>
-                            </div>
-                        </div>
+const IntegrationSettingsTab = () => (
+    <Card>
+        <CardHeader className="border-b border-slate-100">
+            <CardTitle>Integrations</CardTitle>
+            <CardDescription>
+                Connect QA Assistant with external services to enhance your workflow.
+            </CardDescription>
+        </CardHeader>
+        <CardContent className="!pt-6">
+            <div className="flex flex-col items-center text-center py-12 gap-4">
+                <div className="p-4 bg-blue-50 rounded-2xl">
+                    <Zap className="w-8 h-8 text-blue-500" />
+                </div>
+                <h3 className="text-base font-semibold text-slate-800">Integrations coming soon</h3>
+                <p className="text-sm text-slate-500 max-w-sm leading-relaxed">
+                    GitHub Webhooks, Slack Notifications, Bitbucket, and GitLab integrations are under active development.
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center mt-2">
+                    {['GitHub Webhooks', 'Slack', 'Bitbucket', 'GitLab'].map(name => (
+                        <span key={name} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                            {name}
+                        </span>
                     ))}
                 </div>
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
-                    <div className="flex items-start gap-3">
-                        <Zap className="w-4 h-4 text-blue-600 mt-0.5" />
-                        <div>
-                            <h4 className="text-sm font-medium text-blue-900">Want an integration?</h4>
-                            <p className="text-xs text-blue-700 mt-1">
-                                These integrations are under active development. Check back for updates or submit a feature request.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
+            </div>
+        </CardContent>
+    </Card>
+);
 
 // --- Advanced Settings Tab ---
 const AdvancedSettingsTab = ({ addToast }) => {
-    const [isClearing, setIsClearing] = useState(false);
+    const [cacheTtl, setCacheTtl]           = useState('0');
+    const [logRetention, setLogRetention]   = useState('100');
+    const [isSaving, setIsSaving]           = useState(false);
+    const [savedPerf, setSavedPerf]         = useState(false);
+    const [isClearing, setIsClearing]       = useState(false);
+    const [clearConfirm, setClearConfirm]   = useState(false);
+
+    const handleSavePerf = async () => {
+        setIsSaving(true);
+        try {
+            await apiCall('qa_assistant_save_performance_settings', {
+                cache_ttl: cacheTtl,
+                log_retention: logRetention,
+            });
+            setSavedPerf(true);
+            setTimeout(() => setSavedPerf(false), 2000);
+        } catch (err) {
+            addToast('Failed to save: ' + err.message, 'error');
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const handleClearLogs = async () => {
-        if (!window.confirm('Are you sure you want to clear all activity logs? This cannot be undone.')) return;
+        setClearConfirm(false);
         setIsClearing(true);
         try {
             await apiCall('qa_assistant_clear_activity_logs');
@@ -403,12 +421,19 @@ const AdvancedSettingsTab = ({ addToast }) => {
 
     return (
         <div className="space-y-6">
+            <ConfirmModal
+                isOpen={clearConfirm}
+                title="Clear Activity Logs"
+                message="Permanently delete all recorded git activity? This cannot be undone."
+                onConfirm={handleClearLogs}
+                onCancel={() => setClearConfirm(false)}
+                confirmLabel="Clear Logs"
+            />
+
             <Card>
                 <CardHeader className="border-b border-slate-100">
                     <CardTitle>Performance</CardTitle>
-                    <CardDescription>
-                        Fine-tune performance and caching behavior.
-                    </CardDescription>
+                    <CardDescription>Fine-tune performance and caching behavior.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5 !pt-6">
                     <div className="flex items-start justify-between py-2">
@@ -422,10 +447,11 @@ const AdvancedSettingsTab = ({ addToast }) => {
                             </div>
                         </div>
                         <select
-                            defaultValue="0"
+                            value={cacheTtl}
+                            onChange={e => setCacheTtl(e.target.value)}
                             className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
                         >
-                            <option value="0">No cache</option>
+                            <option value="0">Disabled</option>
                             <option value="60">1 minute</option>
                             <option value="300">5 minutes</option>
                             <option value="900">15 minutes</option>
@@ -439,11 +465,12 @@ const AdvancedSettingsTab = ({ addToast }) => {
                             </div>
                             <div>
                                 <label className="text-sm font-medium text-slate-900">Log Retention</label>
-                                <p className="text-xs text-slate-500 mt-0.5">Maximum number of activity log entries to keep</p>
+                                <p className="text-xs text-slate-500 mt-0.5">Maximum entries kept. Oldest entries are dropped when full.</p>
                             </div>
                         </div>
                         <select
-                            defaultValue="100"
+                            value={logRetention}
+                            onChange={e => setLogRetention(e.target.value)}
                             className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
                         >
                             <option value="50">50 entries</option>
@@ -453,6 +480,16 @@ const AdvancedSettingsTab = ({ addToast }) => {
                         </select>
                     </div>
                 </CardContent>
+                <CardFooter className="bg-slate-50 border-t border-slate-100 rounded-b-xl flex justify-end items-center gap-3">
+                    {savedPerf && (
+                        <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Saved
+                        </span>
+                    )}
+                    <Button size="sm" onClick={handleSavePerf} disabled={isSaving}>
+                        {isSaving ? 'Saving…' : 'Save Settings'}
+                    </Button>
+                </CardFooter>
             </Card>
 
             <Card className="border-red-200">
@@ -461,9 +498,7 @@ const AdvancedSettingsTab = ({ addToast }) => {
                         <Shield className="w-4 h-4 text-red-500" />
                         Danger Zone
                     </CardTitle>
-                    <CardDescription>
-                        Destructive actions that cannot be undone.
-                    </CardDescription>
+                    <CardDescription>Destructive actions that cannot be undone.</CardDescription>
                 </CardHeader>
                 <CardContent className="!pt-6 space-y-4">
                     <div className="flex items-center justify-between p-4 bg-red-50 border border-red-100 rounded-lg">
@@ -475,7 +510,7 @@ const AdvancedSettingsTab = ({ addToast }) => {
                             variant="destructive"
                             size="sm"
                             icon={Trash2}
-                            onClick={handleClearLogs}
+                            onClick={() => setClearConfirm(true)}
                             disabled={isClearing}
                         >
                             {isClearing ? 'Clearing...' : 'Clear Logs'}
@@ -487,10 +522,12 @@ const AdvancedSettingsTab = ({ addToast }) => {
     );
 };
 
-// --- Activity Log Panel ---
-const ActivityLogPanel = ({ isOpen, onClose }) => {
+// --- Activity Log Tab ---
+const ActivityLogTab = ({ addToast }) => {
     const [logs, setLogs] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [filterRepo, setFilterRepo] = useState('all');
+    const [filterAction, setFilterAction] = useState('all');
 
     const fetchLogs = useCallback(async () => {
         setIsLoading(true);
@@ -498,103 +535,122 @@ const ActivityLogPanel = ({ isOpen, onClose }) => {
             const data = await apiCall('qa_assistant_get_activity_logs');
             setLogs(data.logs || []);
         } catch (err) {
-            console.error('Failed to fetch logs:', err);
+            addToast('Failed to fetch logs: ' + err.message, 'error');
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [addToast]);
 
-    useEffect(() => {
-        if (isOpen) {
-            fetchLogs();
-        }
-    }, [isOpen, fetchLogs]);
+    useEffect(() => { fetchLogs(); }, [fetchLogs]);
+
+    const repos   = ['all', ...Array.from(new Set(logs.map(l => l.repo)))];
+    const actions = ['all', ...Object.keys(ACTION_CONFIG)];
+
+    const filtered = logs.filter(log => {
+        if (filterRepo   !== 'all' && log.repo   !== filterRepo)  return false;
+        if (filterAction !== 'all' && log.action !== filterAction) return false;
+        return true;
+    });
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: 'easeInOut' }}
-                    className="overflow-hidden"
-                >
-                    <Card className="mb-6">
-                        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Terminal className="w-4 h-4 text-slate-500" />
-                                <h3 className="text-sm font-semibold text-slate-900">Activity Log</h3>
-                                <Badge variant="outline" className="!text-[10px]">{logs.length} entries</Badge>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={fetchLogs}
-                                    className="p-1.5 rounded-md hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
-                                    title="Refresh"
-                                >
-                                    <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                                </button>
-                                <button
-                                    onClick={onClose}
-                                    className="p-1.5 rounded-md hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
-                                >
-                                    <X className="w-3.5 h-3.5" />
-                                </button>
-                            </div>
+        <Card>
+            <CardHeader className="border-b border-slate-100">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Activity Log</CardTitle>
+                        <CardDescription>All recorded git operations across monitored repositories.</CardDescription>
+                    </div>
+                    <button
+                        onClick={fetchLogs}
+                        className="p-1.5 rounded-md hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+                        title="Refresh"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                    </button>
+                </div>
+            </CardHeader>
+            <CardContent className="!pt-4 space-y-4">
+                <div className="flex flex-wrap gap-3 items-center">
+                    <div className="flex items-center gap-2">
+                        <label className="text-xs font-medium text-slate-500">Repo:</label>
+                        <select
+                            value={filterRepo}
+                            onChange={e => setFilterRepo(e.target.value)}
+                            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-slate-400"
+                        >
+                            {repos.map(r => <option key={r} value={r}>{r === 'all' ? 'All repos' : r}</option>)}
+                        </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <label className="text-xs font-medium text-slate-500">Action:</label>
+                        <select
+                            value={filterAction}
+                            onChange={e => setFilterAction(e.target.value)}
+                            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-slate-400"
+                        >
+                            {actions.map(a => (
+                                <option key={a} value={a}>
+                                    {a === 'all' ? 'All actions' : ACTION_CONFIG[a]?.label || a}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <Badge variant="outline" className="!text-[10px] ml-auto">
+                        {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'}
+                    </Badge>
+                </div>
+
+                <div className="border border-slate-100 rounded-lg overflow-hidden">
+                    {isLoading && logs.length === 0 ? (
+                        <div className="p-8 text-center text-slate-400 text-sm">Loading logs…</div>
+                    ) : filtered.length === 0 ? (
+                        <div className="p-8 text-center">
+                            <Terminal className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                            <p className="text-sm text-slate-400">
+                                {logs.length === 0 ? 'No activity recorded yet.' : 'No entries match your filters.'}
+                            </p>
                         </div>
-                        <div className="max-h-[320px] overflow-y-auto">
-                            {isLoading && logs.length === 0 ? (
-                                <div className="p-8 text-center text-slate-400 text-sm">Loading logs…</div>
-                            ) : logs.length === 0 ? (
-                                <div className="p-8 text-center">
-                                    <Terminal className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                                    <p className="text-sm text-slate-400">No activity recorded yet.</p>
-                                    <p className="text-xs text-slate-400 mt-1">Actions like pull, switch, fetch, stash, and commit will be logged here.</p>
-                                </div>
-                            ) : (
-                                <div className="divide-y divide-slate-100">
-                                    {logs.map((log, idx) => {
-                                        const config = ACTION_CONFIG[log.action] || ACTION_CONFIG.pull;
-                                        const ActionIcon = config.icon;
-                                        return (
-                                            <div key={idx} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
-                                                <div className={`p-1.5 rounded-md ${config.bg}`}>
-                                                    <ActionIcon className={`w-3.5 h-3.5 ${config.color}`} />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium text-slate-900">{config.label}</span>
-                                                        <span className="text-xs text-slate-400">→</span>
-                                                        <span className="text-xs font-mono text-slate-600 truncate">{log.repo}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mt-0.5">
-                                                        <span className="text-xs text-slate-500">{log.message}</span>
-                                                        {log.branch && (
-                                                            <Badge variant="outline" className="!text-[10px] !px-1.5 !py-0">
-                                                                {log.branch}
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-                                                    <span className="text-[10px] text-slate-400">{timeAgo(log.timestamp)}</span>
-                                                    {log.user && (
-                                                        <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                                                            <User className="w-2.5 h-2.5" /> {log.user}
-                                                        </span>
-                                                    )}
-                                                </div>
+                    ) : (
+                        <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
+                            {filtered.map((log, idx) => {
+                                const config = ACTION_CONFIG[log.action] || ACTION_CONFIG.pull;
+                                const ActionIcon = config.icon;
+                                return (
+                                    <div key={idx} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
+                                        <div className={`p-1.5 rounded-md ${config.bg} flex-shrink-0`}>
+                                            <ActionIcon className={`w-3.5 h-3.5 ${config.color}`} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-medium text-slate-900">{config.label}</span>
+                                                <span className="text-xs text-slate-400">→</span>
+                                                <span className="text-xs font-mono text-slate-600 truncate">{log.repo}</span>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className="text-xs text-slate-500">{log.message}</span>
+                                                {log.branch && (
+                                                    <Badge variant="outline" className="!text-[10px] !px-1.5 !py-0">
+                                                        {log.branch}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                                            <span className="text-[10px] text-slate-400">{timeAgo(log.timestamp)}</span>
+                                            {log.user && (
+                                                <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                                                    <User className="w-2.5 h-2.5" /> {log.user}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                    </Card>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
     );
 };
 
@@ -676,8 +732,9 @@ const QAAssistantDashboard = () => {
     const [activeTab, setActiveTab] = useState('git');
     const [toasts, setToasts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showActivityLog, setShowActivityLog] = useState(false);
     const [hasDisplayChanges, setHasDisplayChanges] = useState(false);
+    const [branchSwitcher, setBranchSwitcher] = useState(null); // { slug, branches, loading }
+    const [isSwitchingBranch, setIsSwitchingBranch] = useState(null); // slug being switched
     const initialPluginsRef = useRef(null);
     const [confirmState, setConfirmState] = useState({ isOpen: false, slug: '', name: '' });
 
@@ -709,6 +766,17 @@ const QAAssistantDashboard = () => {
     useEffect(() => {
         fetchPlugins();
     }, [fetchPlugins]);
+
+    useEffect(() => {
+        if (!branchSwitcher) return;
+        const handler = (e) => {
+            if (!e.target.closest('[data-branch-switcher]')) {
+                setBranchSwitcher(null);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [branchSwitcher]);
 
     const handleToggleMonitor = async (slug, monitor) => {
         if (!monitor) {
@@ -783,6 +851,35 @@ const QAAssistantDashboard = () => {
         }
     };
 
+    const openBranchSwitcher = async (plugin) => {
+        setBranchSwitcher({ slug: plugin.slug, branches: [], loading: true });
+        try {
+            const data = await apiCall('qa_assistant_get_branches', { plugin_dir: plugin.slug });
+            // data.branches is [{name, age}] — extract names
+            const names = Array.isArray(data.branches)
+                ? data.branches.map(b => (typeof b === 'string' ? b : b.name))
+                : [];
+            setBranchSwitcher({ slug: plugin.slug, branches: names, loading: false });
+        } catch (err) {
+            addToast('Failed to load branches: ' + err.message, 'error');
+            setBranchSwitcher(null);
+        }
+    };
+
+    const handleSwitchBranch = async (slug, branch) => {
+        setIsSwitchingBranch(slug);
+        setBranchSwitcher(null);
+        try {
+            await apiCall('qa_assistant_switch_branch', { plugin_dir: slug, branch, force: 0 });
+            addToast(`Switched to ${branch}`, 'success');
+            await fetchPlugins();
+        } catch (err) {
+            addToast(err.message, 'error');
+        } finally {
+            setIsSwitchingBranch(null);
+        }
+    };
+
     const unmonitoredPlugins = allPlugins.filter(p => !p.is_monitored);
     const filteredUnmonitored = unmonitoredPlugins.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -792,6 +889,7 @@ const QAAssistantDashboard = () => {
     const tabs = [
         { id: 'general', label: 'General Settings', icon: Settings },
         { id: 'git', label: 'Git Settings', icon: GitBranch },
+        { id: 'activity', label: 'Activity Log', icon: Terminal },
         { id: 'integrations', label: 'Integrations', icon: Zap },
         { id: 'advanced', label: 'Advanced', icon: Activity },
     ];
@@ -944,18 +1042,54 @@ const QAAssistantDashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-4">
-                                            <div className="hidden md:flex flex-col items-end">
-                                                <span className={`text-sm font-bold capitalize mb-0.5 ${plugin.status === 'ahead' ? 'text-amber-500' :
-                                                    plugin.status === 'modified' ? 'text-blue-600' : 'text-emerald-600'
-                                                    }`}>
-                                                    {plugin.status === 'stable' ? 'Stable' :
-                                                        plugin.status === 'ahead' ? 'Ahead' :
-                                                            'Modified'}
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex flex-col items-end gap-1.5">
+                                                {/* Status badge */}
+                                                <span className={`text-xs font-semibold capitalize px-2 py-0.5 rounded-full ${
+                                                    plugin.status === 'modified'
+                                                        ? 'bg-amber-100 text-amber-700'
+                                                        : 'bg-emerald-100 text-emerald-700'
+                                                }`}>
+                                                    {plugin.status === 'modified' ? 'Modified' : 'Stable'}
                                                 </span>
-                                                {plugin.lastFetch && (
-                                                    <span className="text-xs text-slate-400 font-medium">Last fetch: {timeAgo(plugin.lastFetch)}</span>
-                                                )}
+                                                {/* Branch switcher */}
+                                                <div className="relative" data-branch-switcher>
+                                                    <button
+                                                        className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 hover:bg-slate-100 px-2 py-1 rounded-md transition-colors border border-slate-200"
+                                                        onClick={() => branchSwitcher?.slug === plugin.slug
+                                                            ? setBranchSwitcher(null)
+                                                            : openBranchSwitcher(plugin)
+                                                        }
+                                                        title="Switch branch"
+                                                        disabled={isSwitchingBranch === plugin.slug}
+                                                    >
+                                                        <GitBranch className="w-3 h-3" />
+                                                        {isSwitchingBranch === plugin.slug ? 'Switching…' : 'Switch…'}
+                                                    </button>
+                                                    {branchSwitcher?.slug === plugin.slug && (
+                                                        <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-lg shadow-lg w-56 max-h-64 overflow-y-auto">
+                                                            {branchSwitcher.loading ? (
+                                                                <div className="p-3 text-xs text-slate-400 text-center">Loading…</div>
+                                                            ) : branchSwitcher.branches.length === 0 ? (
+                                                                <div className="p-3 text-xs text-slate-400 text-center">No branches found</div>
+                                                            ) : branchSwitcher.branches.map(b => (
+                                                                <button
+                                                                    key={b}
+                                                                    onClick={() => handleSwitchBranch(plugin.slug, b)}
+                                                                    className={`w-full text-left px-3 py-2 text-xs font-mono hover:bg-slate-50 flex items-center gap-2 ${
+                                                                        b === plugin.currentBranch ? 'text-emerald-600 font-semibold' : 'text-slate-700'
+                                                                    }`}
+                                                                >
+                                                                    <GitBranch className="w-3 h-3 flex-shrink-0" />
+                                                                    <span className="truncate">{b}</span>
+                                                                    {b === plugin.currentBranch && (
+                                                                        <span className="ml-auto text-[9px] bg-emerald-100 text-emerald-700 px-1.5 rounded-full">current</span>
+                                                                    )}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <button
                                                 className="h-10 w-10 inline-flex items-center justify-center rounded-md cursor-pointer text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors -mr-2"
@@ -987,6 +1121,8 @@ const QAAssistantDashboard = () => {
                 return <GeneralSettingsTab addToast={addToast} />;
             case 'git':
                 return renderGitSettings();
+            case 'activity':
+                return <ActivityLogTab addToast={addToast} />;
             case 'integrations':
                 return <IntegrationSettingsTab />;
             case 'advanced':
@@ -1033,25 +1169,9 @@ const QAAssistantDashboard = () => {
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">QA Assistant</h1>
                     <p className="text-slate-500">Manage your development environments and git workflows directly from WordPress.</p>
                 </div>
-                <div className="flex gap-3">
-                    <Button
-                        variant={showActivityLog ? 'primary' : 'outline'}
-                        size="sm"
-                        icon={Terminal}
-                        onClick={() => setShowActivityLog(!showActivityLog)}
-                    >
-                        Activity
-                        {showActivityLog ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
-                    </Button>
-                </div>
             </div>
 
             <div className="max-w-6xl mx-auto">
-                {/* Activity Log Panel */}
-                <ActivityLogPanel
-                    isOpen={showActivityLog}
-                    onClose={() => setShowActivityLog(false)}
-                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
