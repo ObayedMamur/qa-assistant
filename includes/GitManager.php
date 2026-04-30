@@ -161,11 +161,12 @@ class GitManager
 
         try {
             $repo = $this->git->open($path);
-            // format: <branch-name>\t<unix-timestamp>
+            // format: <branch-name>\t<unix-timestamp>\t<upstream-trackshort>
+            // %(upstream:trackshort) yields e.g. "+2-3", "+2", "-3", or "" (up-to-date / no upstream)
             $output = $repo->execute([
                 'for-each-ref',
                 '--sort=-committerdate',
-                '--format=%(refname:short)\t%(committerdate:unix)',
+                "--format=%(refname:short)\t%(committerdate:unix)\t%(upstream:trackshort)",
                 'refs/heads',
                 'refs/remotes/origin',
             ]);
@@ -177,9 +178,15 @@ class GitManager
                 $line = trim($line);
                 if (empty($line)) continue;
 
-                $parts = explode("\t", $line, 2);
+                $parts = explode("\t", $line, 3);
                 $name  = isset($parts[0]) ? trim($parts[0]) : '';
                 $ts    = isset($parts[1]) ? (int) trim($parts[1]) : 0;
+                $track = isset($parts[2]) ? trim($parts[2]) : '';
+
+                $behind = 0;
+                $ahead  = 0;
+                if (preg_match('/-(\d+)/', $track, $m)) $behind = (int) $m[1];
+                if (preg_match('/\+(\d+)/', $track, $m)) $ahead  = (int) $m[1];
 
                 // Strip "origin/" prefix from remote refs
                 if (strpos($name, 'origin/') === 0) {
@@ -187,10 +194,10 @@ class GitManager
                 }
                 if ($name === 'HEAD' || str_ends_with($name, '/HEAD') || empty($name)) continue;
 
-                // First occurrence wins (local branch before remote)
+                // First occurrence wins (local branch before remote); remote refs carry no track info
                 if (!isset($seen[$name])) {
                     $seen[$name] = true;
-                    $result[] = ['name' => sanitize_text_field($name), 'age' => $ts];
+                    $result[] = ['name' => sanitize_text_field($name), 'age' => $ts, 'behind' => $behind, 'ahead' => $ahead];
                 }
             }
 

@@ -65,9 +65,9 @@ export default function BranchList() {
     const [hoveredBranch, setHoveredBranch] = useState(null);
     const [copiedBranch, setCopiedBranch]   = useState(null);
 
-    const ageByName = useMemo(() => {
+    const metaByName = useMemo(() => {
         const map = {};
-        (branchMeta || []).forEach(m => { map[m.name] = m.age; });
+        (branchMeta || []).forEach(m => { map[m.name] = m; });
         return map;
     }, [branchMeta]);
 
@@ -204,19 +204,32 @@ export default function BranchList() {
                 {/* Badges */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
                     {/* Branch age */}
-                    {!isCurrent && ageByName[branch] ? (
+                    {!isCurrent && metaByName[branch]?.age ? (
                         <span style={{
                             fontSize: 9,
                             color: 'var(--text-faint)',
                             fontVariantNumeric: 'tabular-nums',
                             flexShrink: 0,
                         }}>
-                            {formatAge(ageByName[branch])}
+                            {formatAge(metaByName[branch].age)}
                         </span>
                     ) : null}
                     {isSwitching && (
                         <span style={{ fontSize: 10, color: 'var(--warn-text)', fontWeight: 500 }}>
                             switching…
+                        </span>
+                    )}
+
+                    {/* Un-pulled commits on current branch */}
+                    {isCurrent && metaByName[branch]?.behind > 0 && (
+                        <span title={`${metaByName[branch].behind} commit${metaByName[branch].behind !== 1 ? 's' : ''} behind origin`} style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                            padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600,
+                            backgroundColor: 'var(--info-bg-muted, rgba(59,130,246,0.12))',
+                            color: 'var(--info-primary, #3b82f6)',
+                            border: '1px solid var(--info-border, rgba(59,130,246,0.3))',
+                        }}>
+                            ↓{metaByName[branch].behind}
                         </span>
                     )}
 

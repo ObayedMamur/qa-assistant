@@ -25,10 +25,6 @@ import {
     EyeOff,
     Cpu,
     HardDrive,
-    Layers,
-    ExternalLink,
-    Webhook,
-    MessageSquare,
     Box,
     RefreshCw,
     User,
@@ -211,6 +207,13 @@ const ACTION_CONFIG = {
 // TAB CONTENT COMPONENTS
 // =============================================
 
+// --- Saved indicator (module-scope to avoid remount on every render) ---
+const SavedIndicator = ({ savedKey, settingKey }) => savedKey === settingKey ? (
+    <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+        <CheckCircle2 className="w-3 h-3" /> Saved
+    </span>
+) : null;
+
 // --- General Settings Tab ---
 const GeneralSettingsTab = ({ addToast }) => {
     const [showInAdminBar, setShowInAdminBar]   = useState(true);
@@ -218,10 +221,14 @@ const GeneralSettingsTab = ({ addToast }) => {
     const [notifyOnPull, setNotifyOnPull]         = useState(true);
     const [toastDuration, setToastDuration]       = useState(4);
     const [savedKey, setSavedKey] = useState(null);
+    const savedTimerRef = useRef(null);
+
+    useEffect(() => () => clearTimeout(savedTimerRef.current), []);
 
     const markSaved = (key) => {
         setSavedKey(key);
-        setTimeout(() => setSavedKey(null), 2000);
+        clearTimeout(savedTimerRef.current);
+        savedTimerRef.current = setTimeout(() => setSavedKey(null), 2000);
     };
 
     const saveSetting = async (key, value) => {
@@ -232,12 +239,6 @@ const GeneralSettingsTab = ({ addToast }) => {
             addToast('Failed to save: ' + err.message, 'error');
         }
     };
-
-    const SavedIndicator = ({ settingKey }) => savedKey === settingKey ? (
-        <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3" /> Saved
-        </span>
-    ) : null;
 
     return (
         <div className="space-y-6">
@@ -260,7 +261,7 @@ const GeneralSettingsTab = ({ addToast }) => {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <SavedIndicator settingKey="show_in_admin_bar" />
+                            <SavedIndicator savedKey={savedKey} settingKey="show_in_admin_bar" />
                             <Switch checked={showInAdminBar} onCheckedChange={(v) => {
                                 setShowInAdminBar(v);
                                 saveSetting('show_in_admin_bar', v);
@@ -279,7 +280,7 @@ const GeneralSettingsTab = ({ addToast }) => {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <SavedIndicator settingKey="show_branch_badges" />
+                            <SavedIndicator savedKey={savedKey} settingKey="show_branch_badges" />
                             <Switch checked={showBranchBadges} onCheckedChange={(v) => {
                                 setShowBranchBadges(v);
                                 saveSetting('show_branch_badges', v);
@@ -308,7 +309,7 @@ const GeneralSettingsTab = ({ addToast }) => {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <SavedIndicator settingKey="notify_on_pull" />
+                            <SavedIndicator savedKey={savedKey} settingKey="notify_on_pull" />
                             <Switch checked={notifyOnPull} onCheckedChange={(v) => {
                                 setNotifyOnPull(v);
                                 saveSetting('notify_on_pull', v);
@@ -327,7 +328,7 @@ const GeneralSettingsTab = ({ addToast }) => {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <SavedIndicator settingKey="toast_duration" />
+                            <SavedIndicator savedKey={savedKey} settingKey="toast_duration" />
                             <select
                                 value={toastDuration}
                                 onChange={(e) => {
@@ -389,6 +390,9 @@ const AdvancedSettingsTab = ({ addToast }) => {
     const [savedPerf, setSavedPerf]         = useState(false);
     const [isClearing, setIsClearing]       = useState(false);
     const [clearConfirm, setClearConfirm]   = useState(false);
+    const savedPerfTimerRef = useRef(null);
+
+    useEffect(() => () => clearTimeout(savedPerfTimerRef.current), []);
 
     const handleSavePerf = async () => {
         setIsSaving(true);
@@ -398,7 +402,8 @@ const AdvancedSettingsTab = ({ addToast }) => {
                 log_retention: logRetention,
             });
             setSavedPerf(true);
-            setTimeout(() => setSavedPerf(false), 2000);
+            clearTimeout(savedPerfTimerRef.current);
+            savedPerfTimerRef.current = setTimeout(() => setSavedPerf(false), 2000);
         } catch (err) {
             addToast('Failed to save: ' + err.message, 'error');
         } finally {
@@ -769,13 +774,21 @@ const QAAssistantDashboard = () => {
 
     useEffect(() => {
         if (!branchSwitcher) return;
-        const handler = (e) => {
-            if (!e.target.closest('[data-branch-switcher]')) {
+        const slug = branchSwitcher.slug;
+        const onMouse = (e) => {
+            if (!e.target.closest(`[data-branch-switcher="${slug}"]`)) {
                 setBranchSwitcher(null);
             }
         };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
+        const onKey = (e) => {
+            if (e.key === 'Escape') setBranchSwitcher(null);
+        };
+        document.addEventListener('mousedown', onMouse);
+        document.addEventListener('keydown', onKey);
+        return () => {
+            document.removeEventListener('mousedown', onMouse);
+            document.removeEventListener('keydown', onKey);
+        };
     }, [branchSwitcher]);
 
     const handleToggleMonitor = async (slug, monitor) => {
@@ -1053,7 +1066,7 @@ const QAAssistantDashboard = () => {
                                                     {plugin.status === 'modified' ? 'Modified' : 'Stable'}
                                                 </span>
                                                 {/* Branch switcher */}
-                                                <div className="relative" data-branch-switcher>
+                                                <div className="relative" data-branch-switcher={plugin.slug}>
                                                     <button
                                                         className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 hover:bg-slate-100 px-2 py-1 rounded-md transition-colors border border-slate-200"
                                                         onClick={() => branchSwitcher?.slug === plugin.slug
@@ -1141,6 +1154,7 @@ const QAAssistantDashboard = () => {
                 message={`Are you sure you want to remove "${confirmState.name}" from monitoring? This plugin will no longer show branch info in the Admin Bar.`}
                 onConfirm={handleConfirmRemove}
                 onCancel={() => setConfirmState({ isOpen: false, slug: '', name: '' })}
+                confirmLabel="Remove"
             />
             {/* Toast Container */}
             <AnimatePresence>
