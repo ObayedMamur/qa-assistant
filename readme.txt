@@ -4,7 +4,7 @@ Tags: qa assistant, quality assurance, help, sqa helper tool
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 2.0.3
+Stable tag: 2.1.0
 License: GPLv3
 License URI: https://opensource.org/licenses/GPL-3.0
 
@@ -89,6 +89,38 @@ This plugin does NOT connect to any external services or APIs. All Git operation
 
 
 == Changelog ==
+
+= 2.1.0 - 30/04/2026 =
+
+**🎨 Dashboard UI/UX Overhaul:**
+- Added: Activity Log moved from floating overlay to a dedicated tab with Repo and Action filters
+- Added: Branch switcher dropdown directly on plugin cards — switch branches without opening the drawer
+- Added: Dirty/Modified state badge on plugin cards (amber "Modified" / emerald "Stable")
+- Added: Inline "Saved ✓" feedback per toggle in General Settings — no more full-page saves
+- Added: React ConfirmModal for destructive Clear Logs action, replacing native `window.confirm`
+- Changed: Integrations tab collapsed to a clean coming-soon banner (GitHub Webhooks, Slack, Bitbucket, GitLab)
+- Fixed: Branch Cache TTL dropdown now shows "Disabled" instead of "No cache" and persists the value
+- Fixed: Performance and General settings now persist correctly via dedicated AJAX endpoints
+
+**🗂️ Git Drawer Enhancements:**
+- Added: Branch age indicator on every non-current branch (e.g. 3d, 2mo)
+- Added: Ahead/behind commit counts via `git for-each-ref %(upstream:trackshort)` — ↓N badge on current branch when behind origin
+- Added: Bulk "Pull All" and "Fetch All" buttons in the repository sidebar
+- Added: Ctrl+Shift+G (Cmd+Shift+G on Mac) keyboard shortcut to toggle the drawer
+- Added: Persistent Light/Dark theme engine saved to localStorage
+- Added: Branch name copy-to-clipboard button on hover
+- Added: Search highlighting in branch list matches
+- Changed: Branches sorted by most recent commit date
+
+**🔧 Bug Fixes:**
+- Fixed: Branch names appearing as `dev\t1777533517` — single-quoted PHP `\t` was passing literal backslash-t to git instead of a real tab character
+- Fixed: Stale closure in `loadRepositories` causing wrong repository selection after refresh
+- Fixed: Toast auto-dismiss race condition where `REMOVE_TOAST` fired with a different ID than `ADD_TOAST`
+- Fixed: `doFetch` passing flat branch name strings as `branchMeta` objects, breaking age display
+- Fixed: RepositoryList infinite load loop when server returns empty repository array
+- Fixed: `SavedIndicator` defined inside component render body causing unnecessary remounts
+- Fixed: `setTimeout` timer leaks in settings save feedback (no cleanup on unmount)
+- Fixed: `data-branch-switcher` click-outside handler matching any plugin row, not just the open one
 
 = 2.0.3 - 26/02/2026 =
 - Fixed: Fatal error on plugin activation
